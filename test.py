@@ -24,102 +24,34 @@
 from math import sqrt, pow
 from mlib import *
 
-class Client:
-    
-    __caisse = 0
-
-    # Retourne la caisse de la banque
-    def afficher_caisse() -> None: print(Client.__caisse)
-
-    # Constructeur de la classe client
-    def __init__(self, nom_client: str, solde: float) -> None:
-        # Création des attributs
-        self.solde = solde
-        self.nom_client = nom_client
-
-    # Retourne le solde de la banque
-    def afficher_solde(self) -> None: print(self.solde)
-
-    # Dépose des thunes dans le solde de la banque
-    def depot(self, valeur_deposee: float) -> None:
-        self.solde += valeur_deposee
-
-    # Retire des thunes dans le solde du client
-    def retrait(self, valeur_retiree: float) -> None:
-        if self.solde > valeur_retiree: valeur_retiree = self.solde
-        self.solde -= valeur_retiree
-
-    # Vire des thunes dans le solde de la banque
-    def virement(self, client_viree, valeur_viree: float) -> None:
-        if self.solde > valeur_viree: valeur_viree = self.solde
-        self.retrait(valeur_viree)
-        client_viree.depot(valeur_viree)
-
-jean = Client("Jean", 1000)
-lou = Client("Lou", 5000)
-jean.depot(500)
-jean.virement(lou, 2000)
-lou.retrait(500)
-lou.retrait(2000)
-
-class Point :
-    def __init__(self, x: float, y: float) -> None:
-        self.x = x
-        self.y = y
-
-class Cercle:
-
-    __pi = 3.1415
-
-    def __init__(self, a: float, b: float, r: float) -> None:
-        self.a = a
-        self.b = b
-        self.r = r
-
-    # Retourne le périmètre du cercle
-    def perimetre(self) -> float: return self.r * 2 * Cercle.__pi
-
-    # Retourne la surface du cercle
-    def surface(self) -> float: return self.r * self.r * Cercle.__pi
-
-    # Retourne si un point appartient à un cercle
-    def test_appartenance(self, p: Point) -> float: return sqrt(pow(p.x - self.a, 2) + pow(p.y - self.b, 2)) <= self.r
-
 #******************
 #
-# La classe "Voiture"
+# Programme principal
 #
 #******************
 
-class Voiture :
+fenetre = Fenetre(630, 328)
 
-    # Constructeur de "Voiture"
-    def __init__(self, nom: str, modele: str, couleur: str) -> None:
-        # Définition des attributs de base
-        self.__couleur = couleur
-        self.__modele = modele
-        self.__nom = nom
+moteur_raycast = fenetre.nouveau_raycast()
 
-    def __str__(self) -> str:
-        return self.__nom
+mur = moteur_raycast.nouveau_materiel(1)
+mur.set_couleur_2d((255, 0, 0))
 
-fenetre = Fenetre(500, 500)
+moteur_raycast.generer_map_depuis_texte_chemin_acces("assets/map.txt")
 
-texture = fenetre.charger_texture_chemin_acces("F15", "/home/matto/Images/arme.png")
+rafale = moteur_raycast.nouvel_objet_dynamique("rafale")
+rafale.set_materiel_par_id(1)
 
-titre = fenetre.nouvel_enfant("texte", "text", 0, 0, 500, 100)
-titre.set_bordure_couleur((200, 0, 0))
-titre.set_bordure_largeur_entier(2)
-titre.set_couleur_arriere_plan((255, 0, 0))
-titre.set_police_taille(100)
-titre.set_texte("Leclerc")
-titre.set_texte_alignement_horizontal(1)
-
-v1 = Voiture("Leclerc", "SXXI", "Camouflage jungle")
-print(v1)
-print(id(v1))
+raycast = fenetre.nouvel_enfant("raycast", "raycast", 0, 0, 500, 328)
+raycast.set_couleur_arriere_plan((0, 0, 255))
+raycast.set_raycast_moteur(moteur_raycast)
 
 while fenetre.continuer():
     fenetre.maj_evenements()
+
+    if fenetre.touche_pressee("d"): rafale.set_x(rafale.x() + 5.0 * fenetre.delta_time())
+    if fenetre.touche_pressee("q"): rafale.set_x(rafale.x() - 5.0 * fenetre.delta_time())
+    if fenetre.touche_pressee("s"): rafale.set_y(rafale.y() + 5.0 * 500.0/328.0 * fenetre.delta_time())
+    if fenetre.touche_pressee("z"): rafale.set_y(rafale.y() - 5.0 * 500.0/328.0 * fenetre.delta_time())
 
     fenetre.maj_rendu()

@@ -1,40 +1,14 @@
 #******************
 #
-# mlib_objet.py
+# mlib_structure_plus.py
 #
 #******************
 # Presentation :
 #
-# MLib Super est la dernière version du problej "MLib".
+# MLib Super est la dernière version du projet "MLib".
 # Elle est réalisé pour le projet "Trophées NSI", pour faciliter la création de Software.
 #
-# Ce fichier contient la classe "Objet", et tout le nécessaire pour l'utiliser.
-#
-#******************
-#
-# License (GPL V3.0) :
-#
-# Copyright (C) 2024 par Mattéo.
-# This file is part of MLib Super.
-# MLib Super is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-# MLib Super is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# You should have received a copy of the GNU General Public License along with MLib Super. If not, see <https:#www.gnu.org/licenses/>.
-#
-
-# Importer Pygame pour utiliser le contexte OpenGL
-import pygame
-
-#******************
-#
-# mlib_objet.py
-#
-#******************
-# Presentation :
-#
-# MLib Super est la dernière version du problej "MLib".
-# Elle est réalisé pour le projet "Trophées NSI", pour faciliter la création de Software.
-#
-# Ce fichier contient la classe "Objet", et tout le nécessaire pour l'utiliser.
+# Ce fichier contient la classe "Structure_Plus", et tout le nécessaire pour l'utiliser.
 #
 #******************
 #
@@ -82,7 +56,6 @@ class Texture:
             else:
                 print("MLib Texture : le chemin d'accés \"" + texture_chemin_acces + "\" pour la texture \"" + nom + "\" n'existe pas.")
 
-    # Getters et setters
     def nom(self) -> str:
         """Retourne le nom de la texture
 
@@ -113,6 +86,9 @@ class Structure_Plus :
         """
 
         # Définition des attributes de bases
+        self.__delta_time = 0
+        self.__dernier_delta_time = 0
+        self.__touches_etats = {}
         self.__textures = []
 
     # Charge une texture selon un chemin d'accés et la retourne
@@ -134,7 +110,7 @@ class Structure_Plus :
             else:
                 print("MLib Structure Plus de la Fenêtre : la texture \"" + texture_nom + "\" que vous essayez de charger utilise le chemin d'accés \"" + texture_chemin_acces + "\", qui n'existe pas.")
         else:
-            print("MLib Structure Plus de la Fenêtre : la texture \"" + texture_nom + "\" que vous essayez de charger existe déjà.")         
+            print("MLib Structure Plus de la Fenêtre : la texture \"" + texture_nom + "\" que vous essayez de charger existe déjà.")
     # Retourne une texture
     def texture_nom(self, texture_nom: str) -> Texture:
         """Retourne une texture slon son nom
@@ -153,6 +129,34 @@ class Structure_Plus :
         return 0
 
     # Getters et setters
+    def delta_time(self) -> int:
+        """Retourne le delta time entre deux exécution du software
+
+        Returns:
+            int: delta time entre deux exécution du software
+        """
+        return self.__delta_time
+    def dernier_delta_time(self) -> int:
+        """Retourne le dernier delta time entre deux exécution du software
+
+        Returns:
+            int: dernier delta time entre deux exécution du software
+        """
+        return self.__dernier_delta_time
+    def set_delta_time(self, nouveau_delta_time: int) -> None:
+        """Modifie la valeur du delta time entre deux exécution du software
+
+        Args:
+            delta_time (int): nouvelle valeur du delta time entre deux exécution du software
+        """
+        self.__delta_time = nouveau_delta_time
+    def set_dernier_delta_time(self, nouveau_dernier_delta_time: int) -> None:
+        """Modifie la valeur du dernier delta time entre deux exécution du software
+
+        Args:
+            delta_time (int): nouvelle valeur du dernier delta time entre deux exécution du software
+        """
+        self.__dernier_delta_time = nouveau_dernier_delta_time
     def textures(self) -> list:
         """Retourne les textures chargées dans la structure
 
@@ -160,3 +164,27 @@ class Structure_Plus :
             dict: textures chargées dans la structure
         """
         return self.__textures
+    def touche_pressee(self, touche: str) -> bool:
+        """Retourne si une touche est actuellement pressée
+
+        Args:
+            touche (str): touche à tester
+
+        Returns:
+            bool: si la touche est pressé ou pas
+        """
+        return list(self.touches_pressees()).count(touche) > 0
+    def touches_etats(self) -> dict:
+        """Retourne le dictionnaire des états des touches pressées
+
+        Returns:
+            list: dictionnaire des états des touches pressées
+        """
+        return self.__touches_etats
+    def touches_pressees(self) -> list:
+        """Retourne la liste des touches pressées
+
+        Returns:
+            list: liste des touches pressées
+        """
+        return self.__touches_etats.keys()

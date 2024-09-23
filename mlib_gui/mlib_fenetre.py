@@ -23,8 +23,12 @@
 
 # Importer MLib_Objet pour utiliser les objets MLib
 from mlib_objet import *
+# Importer MLib_Raycast pour utiliser le raycast MLib
+from mlib_raycast import *
 # Importer MLib_Structure_Plus pour utiliser la structure avancée de la fenêtre
 from mlib_structure_plus import *
+# Importer time_ns pour le calcul du delta time
+from time import time_ns
 
 #******************
 #
@@ -61,13 +65,58 @@ class Fenetre(Structure_Plus) :
         """Destructeur de "Fenetre"""
         self.__enfants.clear()
 
+    # Gérer les touches pendant un évènement
+    def __maj_evenements_touche(self, touche: str, type: int) -> None:
+        """Gérer les touches pendant un évènement
+        
+        Argument:
+            touche (str): touche à gérer
+            type (int): type d'évènement
+        """
+        if type == pygame.KEYDOWN:
+            self.touches_etats()[touche] = 1
+        else:
+            self.touches_etats().pop(touche)
+    # Gérer les évènements
     def maj_evenements(self) -> None :
         """Fonction exécutée avant chaque mise à jour de la fenêtre, pour gérer les évènements"""
+
+        # Gérer le delta time
+        if self.dernier_delta_time() != 0: self.set_delta_time((time_ns() - self.dernier_delta_time()) / pow(10, 9))
+        self.set_dernier_delta_time(time_ns())
 
         # On navigue dans chaques évènements
         self.__evenements = pygame.event.get()
         for evenement in self.__evenements:
-            if evenement.type == pygame.QUIT:
+            if evenement.type == pygame.KEYDOWN or evenement.type == pygame.KEYUP:
+                # Une touche du clavier est pressée ou relachée
+                if evenement.key == pygame.K_a: self.__maj_evenements_touche("a", evenement.type)
+                elif evenement.key == pygame.K_b: self.__maj_evenements_touche("b", evenement.type)
+                elif evenement.key == pygame.K_c: self.__maj_evenements_touche("c", evenement.type)
+                elif evenement.key == pygame.K_d: self.__maj_evenements_touche("d", evenement.type)
+                elif evenement.key == pygame.K_e: self.__maj_evenements_touche("e", evenement.type)
+                elif evenement.key == pygame.K_f: self.__maj_evenements_touche("f", evenement.type)
+                elif evenement.key == pygame.K_g: self.__maj_evenements_touche("g", evenement.type)
+                elif evenement.key == pygame.K_h: self.__maj_evenements_touche("h", evenement.type)
+                elif evenement.key == pygame.K_i: self.__maj_evenements_touche("i", evenement.type)
+                elif evenement.key == pygame.K_j: self.__maj_evenements_touche("j", evenement.type)
+                elif evenement.key == pygame.K_k: self.__maj_evenements_touche("k", evenement.type)
+                elif evenement.key == pygame.K_l: self.__maj_evenements_touche("l", evenement.type)
+                elif evenement.key == pygame.K_m: self.__maj_evenements_touche("m", evenement.type)
+                elif evenement.key == pygame.K_n: self.__maj_evenements_touche("n", evenement.type)
+                elif evenement.key == pygame.K_o: self.__maj_evenements_touche("o", evenement.type)
+                elif evenement.key == pygame.K_p: self.__maj_evenements_touche("p", evenement.type)
+                elif evenement.key == pygame.K_q: self.__maj_evenements_touche("q", evenement.type)
+                elif evenement.key == pygame.K_r: self.__maj_evenements_touche("r", evenement.type)
+                elif evenement.key == pygame.K_s: self.__maj_evenements_touche("s", evenement.type)
+                elif evenement.key == pygame.K_t: self.__maj_evenements_touche("t", evenement.type)
+                elif evenement.key == pygame.K_u: self.__maj_evenements_touche("u", evenement.type)
+                elif evenement.key == pygame.K_v: self.__maj_evenements_touche("v", evenement.type)
+                elif evenement.key == pygame.K_w: self.__maj_evenements_touche("w", evenement.type)
+                elif evenement.key == pygame.K_x: self.__maj_evenements_touche("x", evenement.type)
+                elif evenement.key == pygame.K_y: self.__maj_evenements_touche("y", evenement.type)
+                elif evenement.key == pygame.K_z: self.__maj_evenements_touche("z", evenement.type)
+            elif evenement.type == pygame.QUIT:
                 # On repère l'évènement pour quitter le programme
                 self.__continue = False
 
@@ -97,6 +146,8 @@ class Fenetre(Structure_Plus) :
 
         # Création d'un texte
         if type == "text" or type == "texte": return Texte(self, nom)
+        # Création d'une fenêtre Raycast
+        elif type == "raycast": return Raycast_Fenetre(self, nom)
 
         # Création avec le type de base
         return Objet(self, nom)
@@ -124,6 +175,14 @@ class Fenetre(Structure_Plus) :
         self.__enfants.append(nouvel_objet)
 
         return nouvel_objet
+    # Crée et retourne un moteur raycast pour la fenêtre
+    def nouveau_raycast(self) -> Raycast_Moteur:
+        """Crée et retourne un moteur raycast pour la fenêtre
+
+        Returns:
+            Raycast_Moteur: moteur raycast crée
+        """
+        return Raycast_Moteur(self)
 
     # Getters et setters
     def continuer(self) -> bool:

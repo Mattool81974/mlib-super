@@ -93,7 +93,6 @@ class Objet:
         # Appliquer la texture d'arrière plan
         if self.arriere_plan_texture() != 0:
             surface_actuelle = self.arriere_plan_texture().surface()
-            print("U", surface_actuelle, (0, 400, surface_actuelle.get_width(), surface_actuelle.get_height()))
             surface_objet.blit(surface_actuelle, (0, -400, surface_actuelle.get_width(), surface_actuelle.get_height()))
 
     # Getters et setters

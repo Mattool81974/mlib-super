@@ -1,6 +1,6 @@
 #******************
 #
-# mlib_window.py
+# mlib_math_transformation.py
 #
 #******************
 # Presentation :
@@ -8,7 +8,7 @@
 # MLib Super est la dernière version du problej "MLib".
 # Elle est réalisé pour le projet "Trophées NSI", pour faciliter la création de Software.
 #
-# Ce fichier contient tous les imports nécessaires à MLib.
+# Ce fichier contient des informations mathématiques à propos de transformation.
 #
 #******************
 #
@@ -20,9 +20,3 @@
 # MLib Super is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 # You should have received a copy of the GNU General Public License along with MLib Super. If not, see <https:#www.gnu.org/licenses/>.
 #
-
-import sys
-sys.path.append("./mlib_gui/")
-sys.path.append("./mlib_gui/raycast/")
-from mlib_gui.mlib_fenetre import *
-from mlib_gui.mlib_raycast import *
