@@ -21,7 +21,9 @@
 # You should have received a copy of the GNU General Public License along with MLib Super. If not, see <https:#www.gnu.org/licenses/>.
 #
 
-# Importer Pygame pour utiliser le contexte OpenGL
+# Importer MLib_Structure_Plus pour utiliser les données primaires de MLib
+from mlib_structure_plus import *
+# Importer pygame pour utiliser Pygame
 import pygame
 
 #******************
@@ -34,10 +36,11 @@ class Objet:
     """Classe représentant un objet 2D"""
 
     # Constructeur de "Objet"
-    def __init__(self, nom: str, x: int = 0, y: int = 0, largeur: int = 0, hauteur: int = 0) -> None:
+    def __init__(self, structure_plus: Structure_Plus, nom: str, x: int = 0, y: int = 0, largeur: int = 0, hauteur: int = 0) -> None:
         """Constructeur d'un objet 2D
 
         Arguments:
+            structure_plus (Structure_Plus): structure plus dans le software
             nom (str): nom de l'objet
             x (int, optional): Position X de l'objet. Defaults to 0.
             y (int, optional): Position Y de l'objet. Defaults to 0.
@@ -46,10 +49,14 @@ class Objet:
         """
         
         # Définition des attributs de base
+        self.__arriere_plan_texture = 0
+        self.__bordure_couleur = (0, 0, 0)
+        self.__bordure_largeur = (0, 0, 0, 0)
         self.__couleur_arriere_plan = (255, 255, 255, 0)
         self.__hauteur = hauteur
         self.__largeur = largeur
-        self.__nom = largeur
+        self.__nom = nom
+        self.__structure_plus = structure_plus
         self.__surface = 0
         self.__x = x
         self.__y = y
@@ -76,9 +83,78 @@ class Objet:
         Args:
             surface_objet (pygame.Surface): Surface de l'objet
         """
-        pass
+        
+        # Appliquer la bordure
+        pygame.draw.rect(surface_objet, self.bordure_couleur(), (0, 0, self.largeur(), self.bordure_largeur()[0]))
+        pygame.draw.rect(surface_objet, self.bordure_couleur(), (0, 0, self.bordure_largeur()[1], self.hauteur()))
+        pygame.draw.rect(surface_objet, self.bordure_couleur(), (0, self.hauteur() - self.bordure_largeur()[2], self.largeur(), self.bordure_largeur()[2]))
+        pygame.draw.rect(surface_objet, self.bordure_couleur(), (self.largeur() - self.bordure_largeur()[3], 0, self.bordure_largeur()[3], self.hauteur()))
+
+        # Appliquer la texture d'arrière plan
+        if self.arriere_plan_texture() != 0:
+            surface_actuelle = self.arriere_plan_texture().surface()
+            print("U", surface_actuelle, (0, 400, surface_actuelle.get_width(), surface_actuelle.get_height()))
+            surface_objet.blit(surface_actuelle, (0, -400, surface_actuelle.get_width(), surface_actuelle.get_height()))
 
     # Getters et setters
+    def arriere_plan_texture(self) -> Texture:
+        """Retourne la texture d'arrière plan de l'objet
+
+        Returns:
+            pygame.Surface: texture d'arrière plan de l'objet
+        """
+        return self.__arriere_plan_texture
+    def bordure_couleur(self) -> tuple:
+        """Retourne la couleur de la bordure
+
+        Returns:
+            tuple: couleur de la bordure
+        """
+        return self.__bordure_couleur
+    def bordure_largeur(self) -> tuple:
+        """Retourne la largeur de la bordure
+
+        Returns:
+            tuple: largeur de la bordure
+        """
+        return self.__bordure_largeur
+    def hauteur(self) -> int:
+        """Retourne la hauteur de l'objet
+
+        Returns:
+            int: hauteur de l'objet
+        """
+        return self.__hauteur
+    def largeur(self) -> int:
+        """Retourne la largeur de l'objet
+
+        Returns:
+            int: largeur de l'objet
+        """
+        return self.__largeur
+    def set_bordure_couleur(self, nouvelle_bordure_couleur: tuple) -> None:
+        """Modifie la couleur de la bordure
+
+        Args:
+            nouvelle_bordure_couleur (tuple): nouvelle couleur de la bordure
+        """
+        if self.__bordure_couleur != nouvelle_bordure_couleur:
+            self.__bordure_couleur = nouvelle_bordure_couleur
+    def set_bordure_largeur(self, nouvelle_bordure_largeur: tuple) -> None:
+        """Modifie la largeur de la bordure
+
+        Argument:
+            nouvelle_bodef set_bordure_largeur(self, nouvelle_bordure_largeur: tuple) -> None:dure_largeur (tuple) : nouvelle largeur de la bordure
+        """
+        if self.__bordure_largeur != nouvelle_bordure_largeur:
+            self.__bordure_largeur = nouvelle_bordure_largeur
+    def set_bordure_largeur_entier(self, nouvelle_bordure_largeur: int) -> None:
+        """Modifie la largeur de la bordure
+
+        Argument:
+            nouvelle_bordure_largeur (int) : nouvelle largeur de la bordure
+        """
+        self.set_bordure_largeur((nouvelle_bordure_largeur, nouvelle_bordure_largeur, nouvelle_bordure_largeur, nouvelle_bordure_largeur))
     def set_couleur_arriere_plan(self, nouvel_couleur_arriere_plan: tuple) -> None:
         """Modifie la valeur de la couleur d'arrière plan
 
@@ -100,6 +176,13 @@ class Objet:
             nouvel_largeur (int): Nouvelle valeur de largeur
         """
         self.__largeur = nouvel_largeur
+    def set_arriere_plan_texture_par_nom(self, texture_nom: str) -> None:
+        """Change la texture de l'objet par une texture d'un certain nom
+
+        Args:
+            texture_nom (str): nom de la nouvelle texture
+        """
+        self.__arriere_plan_texture = self.structure_plus().texture_nom(texture_nom)
     def set_x(self, nouvel_x: int) -> None:
         """Modifie la valeur de x
 
@@ -114,27 +197,35 @@ class Objet:
             nouvel_y (int): Nouvelle valeur de y
         """
         self.__y = nouvel_y
+    def structure_plus(self) -> Structure_Plus:
+        """Retourne la Structure plus du logiciel
+
+        Returns:
+            Structure_Plus: Structure plus du logiciel
+        """
+        return self.__structure_plus
 
 #******************
 #
-# La classe "Objet"
+# La classe "Texte"
 #
 #******************
 
 class Texte(Objet) :
     """Classe représentant un texte 2D"""
 
-    def __init__(self, nom: str, x: int = 0, y: int = 0, largeur: int = 0, hauteur: int = 0) -> None:
+    def __init__(self, structure_plus: Structure_Plus, nom: str, x: int = 0, y: int = 0, largeur: int = 0, hauteur: int = 0) -> None:
         """Constructeur d'un objet 2D
 
         Arguments:
+            structure_plus (Structure_Plus): structure plus dans le software
             nom (str): nom de l'objet
             x (int, optional): Position X de l'objet. Defaults to 0.
             y (int, optional): Position Y de l'objet. Defaults to 0.
             largeur (int, optional): Largeur de l'objet. Defaults to 0.
             hauteur (int, optional): Hauteur de l'objet. Defaults to 0.
         """
-        super().__init__(nom, x, y, largeur, hauteur)
+        super().__init__(structure_plus, nom, x, y, largeur, hauteur)
 
         # Définition des attributes
         self.__police = 0
@@ -154,20 +245,24 @@ class Texte(Objet) :
         Args:
             surface_objet (pygame.Surface): Surface de l'objet
         """
+
+        # Création de la bordure
+        super().rendu(surface_objet)
         
-        # Création du texte nécessaire
-        surface_texte = self.__police.render(self.__texte, True, self.__texte_couleur)
+        if self.__police != 0:
+            # Création du texte nécessaire
+            surface_texte = self.__police.render(self.__texte, True, self.__texte_couleur)
 
-        # Calcul des coordonnées du texte
-        texte_x = 0
-        if self.__texte_alignement_horizontal == 1 : texte_x = surface_objet.get_width() / 2.0 - surface_texte.get_width() / 2.0
-        elif self.__texte_alignement_horizontal == 2 : texte_x = surface_objet.get_width() - surface_texte.get_width()
-        texte_y = 0
-        if self.__texte_alignement_vertical == 1 : texte_y = surface_objet.get_height() / 2.0 - surface_texte.get_height() / 2.0
-        elif self.__texte_alignement_vertical == 2 : texte_y = surface_objet.get_height() - surface_texte.get_height()
+            # Calcul des coordonnées du texte
+            texte_x = 0
+            if self.__texte_alignement_horizontal == 1 : texte_x = surface_objet.get_width() / 2.0 - surface_texte.get_width() / 2.0
+            elif self.__texte_alignement_horizontal == 2 : texte_x = surface_objet.get_width() - surface_texte.get_width()
+            texte_y = 0
+            if self.__texte_alignement_vertical == 1 : texte_y = surface_objet.get_height() / 2.0 - surface_texte.get_height() / 2.0
+            elif self.__texte_alignement_vertical == 2 : texte_y = surface_objet.get_height() - surface_texte.get_height()
 
-        # Copie de la surface du texte
-        surface_objet.blit(surface_texte, (texte_x, texte_y))
+            # Copie de la surface du texte
+            surface_objet.blit(surface_texte, (texte_x, texte_y))
 
     # Getters et setters
     def set_police_taille(self, nouvelle_police_taille: int) -> None:

@@ -22,7 +22,7 @@
 #
 
 from math import sqrt, pow
-from mlib_fenetre import *
+from mlib import *
 
 class Client:
     
@@ -105,7 +105,11 @@ class Voiture :
 
 fenetre = Fenetre(500, 500)
 
-titre = fenetre.nouvel_enfant("titre", "text", 0, 0, 500, 100)
+texture = fenetre.charger_texture_chemin_acces("F15", "/home/matto/Images/arme.png")
+
+titre = fenetre.nouvel_enfant("texte", "text", 0, 0, 500, 100)
+titre.set_bordure_couleur((200, 0, 0))
+titre.set_bordure_largeur_entier(2)
 titre.set_couleur_arriere_plan((255, 0, 0))
 titre.set_police_taille(100)
 titre.set_texte("Leclerc")

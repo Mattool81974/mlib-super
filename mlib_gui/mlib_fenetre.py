@@ -23,6 +23,8 @@
 
 # Importer MLib_Objet pour utiliser les objets MLib
 from mlib_objet import *
+# Importer MLib_Structure_Plus pour utiliser la structure avancée de la fenêtre
+from mlib_structure_plus import *
 
 #******************
 #
@@ -30,7 +32,7 @@ from mlib_objet import *
 #
 #******************
 
-class Fenetre :
+class Fenetre(Structure_Plus) :
     """Classe représentant une fenêtre MLib"""
     
     def __init__(self, largeur: int, hauteur: int) -> None:
@@ -40,6 +42,7 @@ class Fenetre :
             largeur (int): Largeur de la fenêtre
             hauteur (int): Hauteur de la fenêtre
         """
+        super().__init__()
 
         # Définition des attributs de base
         self.__continue = True
@@ -93,10 +96,10 @@ class Fenetre :
         """
 
         # Création d'un texte
-        if type == "text" or type == "texte": return Texte(nom)
+        if type == "text" or type == "texte": return Texte(self, nom)
 
         # Création avec le type de base
-        return Objet(nom)
+        return Objet(self, nom)
 
     def nouvel_enfant(self, nom: str, type: str, x: int, y: int, largeur: int, hauteur: int) -> Objet:
         """Crée et retourne un nouvel enfant dans la fenêtre
