@@ -42,16 +42,20 @@ moteur_raycast.generer_map_depuis_texte_chemin_acces("assets/map.txt")
 rafale = moteur_raycast.nouvel_objet_dynamique("rafale")
 rafale.set_materiel_par_id(1)
 
-raycast = fenetre.nouvel_enfant("raycast", "raycast", 0, 0, 500, 328)
+raycast = fenetre.nouvel_enfant("raycast", "raycast", 0, 0, 328, 328)
 raycast.set_couleur_arriere_plan((0, 0, 255))
 raycast.set_raycast_moteur(moteur_raycast)
+
+moteur_raycast.camera().set_x(5)
+moteur_raycast.camera().set_y(5)
 
 while fenetre.continuer():
     fenetre.maj_evenements()
 
-    if fenetre.touche_pressee("d"): rafale.set_x(rafale.x() + 5.0 * fenetre.delta_time())
-    if fenetre.touche_pressee("q"): rafale.set_x(rafale.x() - 5.0 * fenetre.delta_time())
-    if fenetre.touche_pressee("s"): rafale.set_y(rafale.y() + 5.0 * 500.0/328.0 * fenetre.delta_time())
-    if fenetre.touche_pressee("z"): rafale.set_y(rafale.y() - 5.0 * 500.0/328.0 * fenetre.delta_time())
+    if fenetre.touche_pressee("z"): moteur_raycast.camera().avancer(5.0 * fenetre.delta_time())
+    if fenetre.touche_pressee("s"): moteur_raycast.camera().avancer(-5.0 * fenetre.delta_time())
+
+    if fenetre.touche_pressee("d"): moteur_raycast.camera().set_rotation_y(moteur_raycast.camera().rotation_y() - (3.1415) * fenetre.delta_time())
+    if fenetre.touche_pressee("q"): moteur_raycast.camera().set_rotation_y(moteur_raycast.camera().rotation_y() + (3.1415) * fenetre.delta_time())
 
     fenetre.maj_rendu()
