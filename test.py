@@ -48,6 +48,7 @@ raycast.set_raycast_moteur(moteur_raycast)
 
 moteur_raycast.camera().set_x(5)
 moteur_raycast.camera().set_y(5)
+moteur_raycast.camera().set_z(10)
 
 while fenetre.continuer():
     fenetre.maj_evenements()
@@ -55,7 +56,10 @@ while fenetre.continuer():
     if fenetre.touche_pressee("z"): moteur_raycast.camera().avancer(5.0 * fenetre.delta_time())
     if fenetre.touche_pressee("s"): moteur_raycast.camera().avancer(-5.0 * fenetre.delta_time())
 
-    if fenetre.touche_pressee("d"): moteur_raycast.camera().set_rotation_y(moteur_raycast.camera().rotation_y() - (3.1415) * fenetre.delta_time())
-    if fenetre.touche_pressee("q"): moteur_raycast.camera().set_rotation_y(moteur_raycast.camera().rotation_y() + (3.1415) * fenetre.delta_time())
+    if fenetre.touche_pressee("fd"): moteur_raycast.camera().set_rotation_y(moteur_raycast.camera().rotation_y() - (3.1415) * fenetre.delta_time())
+    if fenetre.touche_pressee("fg"): moteur_raycast.camera().set_rotation_y(moteur_raycast.camera().rotation_y() + (3.1415) * fenetre.delta_time())
+
+    if fenetre.touche_pressee("espace"): moteur_raycast.camera().set_z(moteur_raycast.camera().z() + 5 * fenetre.delta_time())
+    if fenetre.touche_pressee("shift"): moteur_raycast.camera().set_z(moteur_raycast.camera().z() - 5 * fenetre.delta_time())
 
     fenetre.maj_rendu()

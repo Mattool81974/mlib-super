@@ -116,6 +116,10 @@ class Fenetre(Structure_Plus) :
                 elif evenement.key == pygame.K_x: self.__maj_evenements_touche("x", evenement.type)
                 elif evenement.key == pygame.K_y: self.__maj_evenements_touche("y", evenement.type)
                 elif evenement.key == pygame.K_z: self.__maj_evenements_touche("z", evenement.type)
+                elif evenement.key == pygame.K_LEFT: self.__maj_evenements_touche("fg", evenement.type)
+                elif evenement.key == pygame.K_RIGHT: self.__maj_evenements_touche("fd", evenement.type)
+                elif evenement.key == pygame.K_SPACE: self.__maj_evenements_touche("espace", evenement.type)
+                elif evenement.key == pygame.K_LSHIFT: self.__maj_evenements_touche("shift", evenement.type)
             elif evenement.type == pygame.QUIT:
                 # On repère l'évènement pour quitter le programme
                 self.__continue = False

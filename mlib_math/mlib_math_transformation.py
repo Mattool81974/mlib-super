@@ -58,6 +58,13 @@ class Point_3D:
             float (nouvel_y): nouvelle valeur du Y dans le point
         """
         self.__y = nouvel_y
+    def set_z(self, nouvel_z: float) -> None:
+        """Modifie la valeur du Z dans le point
+
+        Args:
+            float (nouvel_z): nouvelle valeur du Z dans le point
+        """
+        self.__z = nouvel_z
     def x(self) -> float:
         """Retourne la position X de la transformation
 
