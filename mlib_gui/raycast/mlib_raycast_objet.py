@@ -25,6 +25,8 @@
 import pygame
 # Importer des données sur les chemin d'accés
 import os.path
+# Importer les données mathématiques nécessaire pour le raycast
+from mlib_math.mlib_math_transformation import *
 # Importer des données sur les objets de base de MLib
 from mlib_structure_plus import *
 
@@ -144,7 +146,7 @@ class Raycast_Moteur_Structure:
 #
 #******************
 
-class Raycast_Objet_Dynamique:
+class Raycast_Objet_Dynamique(Transformation_3D):
     """Classe représentant un objet dynamique pour le raycast"""
 
     # Constructeur de "Raycast_Objet_Dynamique"
@@ -152,17 +154,30 @@ class Raycast_Objet_Dynamique:
         """ Constructeur de "Raycast_Objet_Dynamique"
 
         Args:
+            raycast_moteur_structure (Raycast_Moteur_Structure): moteur principal de l'objet dynamique
             nom (str): nom de l'objet dynamique
         """
+        super().__init__()
 
         # Définition des attributs
+        self.__hauteur = 1
         self.__materiel = 0
         self.__nom = nom
         self.__raycast_moteur_structure = raycast_moteur_structure
-        self.__x = 0
-        self.__y = 0
+
+    # Met l'objet à jour
+    def maj(self) -> None:
+        """Met l'objet à jour"""
+        pass
     
     # Getters et setters
+    def hauteur(self) -> float:
+        """Retourne la hauteur de l'objet
+
+        Returns:
+            float: hauteur de l'objet
+        """
+        return self.__hauteur
     def materiel(self) -> Raycast_Materiel:
         """Retourne le matériel de raycast de l'objet
 
@@ -198,31 +213,10 @@ class Raycast_Objet_Dynamique:
             nouveau_materiel (Raycast_Materiel): id du nouveau matériel
         """
         self.set_materiel(self.raycast_moteur_structure().materiel_par_id(nouveau_materiel))
-    def set_x(self, nouvel_x: float) -> None:
-        """Change la valeur de x
-
-        Args:
-            nouvel_x (float): nouvelle valeur de x
-        """
-        self.__x = nouvel_x
-    def set_y(self, nouvel_y: float) -> None:
-        """Change la valeur de y
-
-        Args:
-            nouvel_y (float): nouvelle valeur de y
-        """
-        self.__y = nouvel_y
-    def x(self) -> float:
-        """Retourne la valeur de x
+    def structure_plus(self) -> Structure_Plus:
+        """Retourne la Structure_Plus du software
 
         Returns:
-            float: valeur de x
+            Structure_Plus: Structure_Plus du software
         """
-        return self.__x
-    def y(self) -> float:
-        """Retourne la valeur de y
-
-        Returns:
-            float: valeur de y
-        """
-        return self.__y
+        return self.raycast_moteur_structure().structure_plus()

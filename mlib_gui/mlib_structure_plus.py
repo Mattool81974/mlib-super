@@ -55,7 +55,8 @@ class Texture:
                 self.__surface = pygame.image.load(texture_chemin_acces)
             else:
                 print("MLib Texture : le chemin d'accés \"" + texture_chemin_acces + "\" pour la texture \"" + nom + "\" n'existe pas.")
-
+    
+    # Getters et setters
     def nom(self) -> str:
         """Retourne le nom de la texture
 
@@ -88,6 +89,7 @@ class Structure_Plus :
         # Définition des attributes de bases
         self.__delta_time = 0
         self.__dernier_delta_time = 0
+        self.__numero_frame = 0
         self.__touches_etats = {}
         self.__textures = []
 
@@ -128,6 +130,11 @@ class Structure_Plus :
                 return t
         return 0
 
+    # Gérer les évènements
+    def maj_evenements(self) -> None :
+        """Fonction exécutée avant chaque mise à jour de la fenêtre, pour gérer les évènements"""
+        self.__numero_frame += 1
+
     # Getters et setters
     def delta_time(self) -> int:
         """Retourne le delta time entre deux exécution du software
@@ -143,6 +150,13 @@ class Structure_Plus :
             int: dernier delta time entre deux exécution du software
         """
         return self.__dernier_delta_time
+    def numero_frame(self) -> int:
+        """Retourne le numéro de la frame
+
+        Returns:
+            int: numéro de la frame
+        """
+        return self.__numero_frame
     def set_delta_time(self, nouveau_delta_time: int) -> None:
         """Modifie la valeur du delta time entre deux exécution du software
 

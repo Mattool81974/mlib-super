@@ -50,6 +50,7 @@ class Objet:
         
         # Définition des attributs de base
         self.__arriere_plan_texture = 0
+        self.__arriere_plan_texture_alignement_horizontal = 1
         self.__bordure_couleur = (0, 0, 0)
         self.__bordure_largeur = (0, 0, 0, 0)
         self.__couleur_arriere_plan = (255, 255, 255, 0)
@@ -69,7 +70,7 @@ class Objet:
         """
 
         # Création de la surface de l'objet
-        self.__surface = pygame.Surface((self.__largeur, self.__hauteur))
+        self.__surface = pygame.Surface((self.__largeur, self.__hauteur), pygame.SRCALPHA)
         self.__surface.fill(self.__couleur_arriere_plan)
         # Applique le rendu nécessaire
         self.rendu(self.__surface)
@@ -93,7 +94,13 @@ class Objet:
         # Appliquer la texture d'arrière plan
         if self.arriere_plan_texture() != 0:
             surface_actuelle = self.arriere_plan_texture().surface()
-            surface_objet.blit(surface_actuelle, (0, -400, surface_actuelle.get_width(), surface_actuelle.get_height()))
+
+            # Calcul des coordonnées
+            x_texture = 0
+            if self.arriere_plan_texture_alignement_horizontal() == 1:
+                x_texture = surface_objet.get_width() / 2.0 - surface_actuelle.get_width() / 2.0
+
+            surface_objet.blit(surface_actuelle, (x_texture, 0, surface_actuelle.get_width(), surface_actuelle.get_height()))
 
     # Getters et setters
     def arriere_plan_texture(self) -> Texture:
@@ -103,6 +110,13 @@ class Objet:
             pygame.Surface: texture d'arrière plan de l'objet
         """
         return self.__arriere_plan_texture
+    def arriere_plan_texture_alignement_horizontal(self) -> int:
+        """Retourne l'alignement horizontal de la texture d'arrière plan de l'objet
+
+        Returns:
+            int: alignement horizontal de la texture d'arrière plan de l'objet
+        """
+        return self.__arriere_plan_texture_alignement_horizontal
     def bordure_couleur(self) -> tuple:
         """Retourne la couleur de la bordure
 
@@ -143,7 +157,7 @@ class Objet:
         """Modifie la largeur de la bordure
 
         Argument:
-            nouvelle_bodef set_bordure_largeur(self, nouvelle_bordure_largeur: tuple) -> None:dure_largeur (tuple) : nouvelle largeur de la bordure
+            nouvelle_bordure_largeur (tuple) : nouvelle largeur de la bordure
         """
         if self.__bordure_largeur != nouvelle_bordure_largeur:
             self.__bordure_largeur = nouvelle_bordure_largeur
@@ -228,7 +242,7 @@ class Texte(Objet) :
 
         # Définition des attributes
         self.__police = 0
-        self.__police_taille = 20
+        self.__police_taille = -1
         self.__texte = ""
         self.__texte_alignement_horizontal = 1
         self.__texte_alignement_vertical = 1

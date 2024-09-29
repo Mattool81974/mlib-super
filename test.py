@@ -48,7 +48,7 @@ raycast.set_raycast_moteur(moteur_raycast)
 
 moteur_raycast.camera().set_x(5)
 moteur_raycast.camera().set_y(5)
-moteur_raycast.camera().set_z(10)
+moteur_raycast.camera().set_z(2)
 
 while fenetre.continuer():
     fenetre.maj_evenements()

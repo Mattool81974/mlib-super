@@ -22,11 +22,11 @@
 #
 
 # Importer des fonctions mathématiques nécessaires
-from math import sin, cos
+from math import acos, asin, sin, cos, sqrt, pow, pi
 
 #******************
 #
-# La classe "Transformation_3D"
+# La classe "Point_3D"
 #
 #******************
 
@@ -42,6 +42,57 @@ class Point_3D:
         self.__x = 0
         self.__y = 0
         self.__z = 0
+
+    # Ajoute un vecteur à ce point
+    def ajouter(self, vecteur):
+        """Ajouter un vecteur à ce point
+
+        Args:
+            vecteur (Point_3D): valeur à ajouter
+        """
+        self.set_x(self.x() + vecteur.x())
+        self.set_y(self.y() + vecteur.y())
+        self.set_z(self.z() + vecteur.z())
+    # Copie et retourne ce point
+    def copie(self):
+        """Copie et retourne ce point
+
+        Returns:
+            Point_3D: copie de ce point
+        """
+        nouveau_point = Point_3D()
+        nouveau_point.set_x(self.x())
+        nouveau_point.set_y(self.y())
+        nouveau_point.set_z(self.z())
+        return nouveau_point
+    # Enlève un vecteur à ce point
+    def enlever(self, vecteur):
+        """Enlève un vecteur à ce point
+
+        Args:
+            vecteur (Point_3D): valeur à ajouter
+        """
+        self.set_x(self.x() - vecteur.x())
+        self.set_y(self.y() - vecteur.y())
+        self.set_z(self.z() - vecteur.z())
+    # Multiplie une valeur à ce point
+    def multiplier_valeur(self, valeur: float):
+        """Ajouter un vecteur à ce point
+
+        Args:
+            valeur (float): valeur à multiplier
+        """
+        self.set_x(self.x() * valeur)
+        self.set_y(self.y() * valeur)
+        self.set_z(self.z() * valeur)
+    # Retourne la taille des points
+    def valeur(self) -> float:
+        """Retourne la taille des points
+
+        Returns:
+            float: taille des points
+        """
+        return sqrt(self.z() * self.z() + self.x() * self.x() + self.y() * self.y())
 
     # Getters et setters
     def set_x(self, nouvel_x: float) -> None:
@@ -65,6 +116,15 @@ class Point_3D:
             float (nouvel_z): nouvelle valeur du Z dans le point
         """
         self.__z = nouvel_z
+    def set_xyz(self, xyz) -> None:
+        """Change la valeur des trois axes 3D
+
+        Args:
+            xyz (Point_3D): nouvelle valeur des trois axes 3D
+        """
+        self.set_x(xyz.x())
+        self.set_y(xyz.y())
+        self.set_z(xyz.z())
     def x(self) -> float:
         """Retourne la position X de la transformation
 
@@ -86,6 +146,139 @@ class Point_3D:
             float: position Z de la transformation
         """
         return self.__z
+    
+    # Surchage des opérateurs
+    def __add__(self, autre):
+        """Retourne l'addition de ce point avec un autre
+
+        Args:
+            autre (Point_3D): point à additionner
+
+        Returns:
+            Point_3D: addition de ce point avec un autre
+        """
+        nouveau_point = Point_3D()
+        nouveau_point.set_x(self.x() + autre.x())
+        nouveau_point.set_y(self.y() + autre.y())
+        nouveau_point.set_z(self.z() + autre.z())
+        return nouveau_point
+    def __iadd__(self, autre):
+        """Effectue l'addition de ce point avec un autre
+
+        Args:
+            autre (Point_3D): point à additionner
+        """
+        self.set_x(self.x() + autre.x())
+        self.set_y(self.y() + autre.y())
+        self.set_z(self.z() + autre.z())
+        return self
+    def __imul__(self, autre):
+        """Effectue la multiplication de ce point avec un autre
+
+        Args:
+            autre: valeur à multiplier
+        """
+        if type(autre) == float or type(autre) == int:
+            self.set_x(self.x() * autre)
+            self.set_y(self.y() * autre)
+            self.set_z(self.z() * autre)
+        return self
+    def __isub__(self, autre):
+        """Effectue la soustraction de ce point avec un autre
+
+        Args:
+            autre (Point_3D): point à soustraire
+        """
+        self.set_x(self.x() - autre.x())
+        self.set_y(self.y() - autre.y())
+        self.set_z(self.z() - autre.z())
+        return self
+    def __sub__(self, autre):
+        """Retourne la soustraction de ce point avec un autre
+
+        Args:
+            autre (Point_3D): point à soustraire
+
+        Returns:
+            Point_3D: soustraction de ce point avec un autre
+        """
+        nouveau_point = Point_3D()
+        nouveau_point.set_x(self.x() - autre.x())
+        nouveau_point.set_y(self.y() - autre.y())
+        nouveau_point.set_z(self.z() - autre.z())
+        return nouveau_point
+
+def angle(premier_point: Point_3D, deuxieme_point: Point_3D, troisieme_point: Point_3D) -> float:
+    """Retourne l'angle entre 3 points
+
+    Args:
+        premier_point (Point_3D): premier point
+        deuxieme_point (Point_3D): deuxième_point
+        troisieme_point (Point_3D): troisième_point
+
+    Returns:
+        float: angle entre ces 3 points
+    """
+
+    # Calculer le premier angle
+    premier_hypothenus = sqrt(pow(premier_point.x() - deuxieme_point.x(), 2) + pow(premier_point.y() - deuxieme_point.y(), 2))
+    premier_angle_x = asin(abs(deuxieme_point.y() - premier_point.y()) / premier_hypothenus)
+    premier_angle_y = acos(abs(deuxieme_point.y() - premier_point.y()) / premier_hypothenus)
+
+    # Calculer le deuxième angle
+    deuxieme_hypothenus = sqrt(pow(troisieme_point.x() - deuxieme_point.x(), 2) + pow(troisieme_point.y() - deuxieme_point.y(), 2))
+    deuxieme_angle_x = asin(abs(troisieme_point.y() - deuxieme_point.y()) / deuxieme_hypothenus)
+    deuxieme_angle_y = acos(abs(troisieme_point.y() - deuxieme_point.y()) / deuxieme_hypothenus)
+
+    # Renvoyer le bon résultat
+    if premier_point.x() > deuxieme_point.x() and deuxieme_point.x() > troisieme_point.x():
+        # Deuxième point au milieu des 2 points et 1er point après 3ème point
+        if premier_point.y() > deuxieme_point.y() and troisieme_point.y() > deuxieme_point.y(): return pi - (premier_angle_x + deuxieme_angle_x)
+        elif premier_point.y() > deuxieme_point.y() and troisieme_point.y() < deuxieme_point.y(): return pi + (pi / 2.0 - premier_angle_x) + deuxieme_angle_x
+        elif premier_point.y() < deuxieme_point.y() and troisieme_point.y() > deuxieme_point.y(): return pi + (pi / 2.0 - deuxieme_angle_x) + premier_angle_x
+        else: return -(pi - (premier_angle_x + deuxieme_angle_x))
+    elif premier_point.x() < deuxieme_point.x() and deuxieme_point.x() < troisieme_point.x():
+        # Deuxième point au milieu des 2 points 1er point avant 3ème point
+        if premier_point.y() > deuxieme_point.y() and troisieme_point.y() > deuxieme_point.y(): return -(pi - (premier_angle_x + deuxieme_angle_x))
+        elif premier_point.y() > deuxieme_point.y() and troisieme_point.y() < deuxieme_point.y(): return pi + (pi / 2.0 - deuxieme_angle_x) + premier_angle_x
+        elif premier_point.y() < deuxieme_point.y() and troisieme_point.y() > deuxieme_point.y(): return pi + (pi / 2.0 - premier_angle_x) + deuxieme_angle_x
+        else: return pi - (premier_angle_x + deuxieme_angle_x)
+    elif premier_point.x() > deuxieme_point.x() and troisieme_point.x() > deuxieme_point.x():
+        # Deuxième point à gauche (+ x) des 2 points
+        if premier_point.y() == deuxieme_point.y(): return deuxieme_angle_x
+        elif troisieme_point.y() == deuxieme_point.y(): return -premier_angle_x
+        elif premier_point.y() > deuxieme_point.y() and troisieme_point.y() > deuxieme_point.y(): return (deuxieme_angle_x - premier_angle_x)
+        elif premier_point.y() > deuxieme_point.y() and troisieme_point.y() < deuxieme_point.y(): return pi + (deuxieme_angle_x + premier_angle_x)
+        elif premier_point.y() < deuxieme_point.y() and troisieme_point.y() > deuxieme_point.y(): return (deuxieme_angle_x + premier_angle_x)
+        else: return (premier_angle_x - deuxieme_angle_x)
+    else:
+        # Deuxième point à droite (- x) des 2 points
+        if premier_point.y() == deuxieme_point.y(): return -deuxieme_angle_x
+        elif troisieme_point.y() == deuxieme_point.y(): return premier_angle_x
+        elif premier_point.y() > deuxieme_point.y() and troisieme_point.y() > deuxieme_point.y(): return (premier_angle_x - deuxieme_angle_x)
+        elif premier_point.y() > deuxieme_point.y() and troisieme_point.y() < deuxieme_point.y(): return (premier_angle_x + deuxieme_angle_x)
+        elif premier_point.y() < deuxieme_point.y() and troisieme_point.y() > deuxieme_point.y(): return -(premier_angle_x + deuxieme_angle_x)
+        else: return deuxieme_angle_x - premier_angle_x
+
+    return (deuxieme_angle_y - premier_angle_y)
+
+def distance(premier_point: Point_3D, deuxieme_point: Point_3D) -> float:
+    """Retourne la distance entre deux points
+
+    Args:
+        premier_point (Point_3D): premier point
+        deuxieme_point (Point_3D): premier point
+
+    Returns:
+        float: distance entre deux points
+    """
+    return sqrt(pow(premier_point.x() - deuxieme_point.x(), 2) + pow(premier_point.y() - deuxieme_point.y(), 2))
+
+#******************
+#
+# La classe "Transformation_3D"
+#
+#******************
 
 class Transformation_3D(Point_3D):
     """Classe représentant une transformation 3D"""
@@ -124,9 +317,17 @@ class Transformation_3D(Point_3D):
         avant = Point_3D()
         avant.set_x(cos(self.rotation_y() + angle_ajuste))
         avant.set_y(sin(self.rotation_y() + angle_ajuste))
+        avant.set_z(sin(self.rotation_x()))
         return avant
 
     # Getters et setters
+    def rotation_x(self) -> float:
+        """Retourne la rotation X de la transformation
+
+        Returns:
+            float: rotation X de la transformation
+        """
+        return self.__rotation_x
     def rotation_y(self) -> float:
         """Retourne la rotation Y de la transformation
 
@@ -134,6 +335,14 @@ class Transformation_3D(Point_3D):
             float: rotation Y de la transformation
         """
         return self.__rotation_y
+    def set_rotation_x(self, nouvelle_rotation_x: float) -> None:
+        """Change la rotation X de la transformation
+
+        Returns:
+            float: nouvelle rotation X de la transformation
+        """
+        if nouvelle_rotation_x != self.__rotation_x:
+            self.__rotation_x = nouvelle_rotation_x
     def set_rotation_y(self, nouvelle_rotation_y: float) -> None:
         """Change la rotation Y de la transformation
 

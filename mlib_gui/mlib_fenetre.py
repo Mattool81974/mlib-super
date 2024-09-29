@@ -51,11 +51,14 @@ class Fenetre(Structure_Plus) :
         # Définition des attributs de base
         self.__continue = True
         self.__couleur_arriere_plan = (255, 255, 255)
+        self.__dernier_fps = 0
         self.__hauteur = hauteur
         self.__ecran = 0
         self.__enfants = []
         self.__evenements = 0
+        self.__frame_depuis_dernier_fps = 0
         self.__largeur = largeur
+        self.__temps_depuis_dernier_fps = 0
 
         # Mise en place de Pygame
         pygame.init()
@@ -81,9 +84,17 @@ class Fenetre(Structure_Plus) :
     def maj_evenements(self) -> None :
         """Fonction exécutée avant chaque mise à jour de la fenêtre, pour gérer les évènements"""
 
-        # Gérer le delta time
+        # Gérer le delta time et les FPS
         if self.dernier_delta_time() != 0: self.set_delta_time((time_ns() - self.dernier_delta_time()) / pow(10, 9))
         self.set_dernier_delta_time(time_ns())
+        self.__temps_depuis_dernier_fps += self.delta_time()
+        if self.__temps_depuis_dernier_fps > 1:
+            self.__dernier_fps = self.__frame_depuis_dernier_fps
+            self.__frame_depuis_dernier_fps = 0
+            self.__temps_depuis_dernier_fps -= 1
+            print("FPS :", self.__dernier_fps)
+        self.__frame_depuis_dernier_fps += 1
+        super().maj_evenements()
 
         # On navigue dans chaques évènements
         self.__evenements = pygame.event.get()
@@ -118,6 +129,8 @@ class Fenetre(Structure_Plus) :
                 elif evenement.key == pygame.K_z: self.__maj_evenements_touche("z", evenement.type)
                 elif evenement.key == pygame.K_LEFT: self.__maj_evenements_touche("fg", evenement.type)
                 elif evenement.key == pygame.K_RIGHT: self.__maj_evenements_touche("fd", evenement.type)
+                elif evenement.key == pygame.K_UP: self.__maj_evenements_touche("fh", evenement.type)
+                elif evenement.key == pygame.K_DOWN: self.__maj_evenements_touche("fb", evenement.type)
                 elif evenement.key == pygame.K_SPACE: self.__maj_evenements_touche("espace", evenement.type)
                 elif evenement.key == pygame.K_LSHIFT: self.__maj_evenements_touche("shift", evenement.type)
             elif evenement.type == pygame.QUIT:
@@ -127,6 +140,7 @@ class Fenetre(Structure_Plus) :
         # Appliquer les évènements graphiques de base
         self.__ecran.fill(self.__couleur_arriere_plan)
 
+    # Gérer le rendu
     def maj_rendu(self) -> None:
         """Fonction exécutée pour mettre la fenêtre graphique à jour"""
 
@@ -137,7 +151,7 @@ class Fenetre(Structure_Plus) :
         # On affiche l'écran
         pygame.display.flip()
 
-    def __nouvel_enfant_creer(self, nom: str, type: str) -> Objet:
+    def nouvel_enfant_createur(self, nom: str, type: str) -> Objet:
         """Crée l'enfant, avec le type nécessaire selon "type
 
         Args:
@@ -171,7 +185,7 @@ class Fenetre(Structure_Plus) :
         """
 
         # Création de l'enfant
-        nouvel_objet = self.__nouvel_enfant_creer(nom, type)
+        nouvel_objet = self.nouvel_enfant_createur(nom, type)
         nouvel_objet.set_hauteur(hauteur)
         nouvel_objet.set_largeur(largeur)
         nouvel_objet.set_x(x)

@@ -64,7 +64,7 @@ class Raycast_Fenetre(Objet):
         if self.arriere_plan_texture() != "": self.set_arriere_plan_texture_par_nom("")
         super().rendu(surface_objet)
 
-        # Applique le rendu 2D
+        # Applique le rendu 3D
         surface_actuelle = self.raycast_moteur().rendu_3d()
         surface_actuelle = pygame.transform.scale(surface_actuelle, (surface_objet.get_width(), surface_objet.get_height()))
         surface_objet.blit(surface_actuelle, (0, 0, surface_objet.get_width(), surface_objet.get_height()))
