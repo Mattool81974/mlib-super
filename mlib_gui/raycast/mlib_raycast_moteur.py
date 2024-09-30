@@ -432,6 +432,22 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         self.__map = []
         self.__objets_dynamiques = []
 
+    # Retourne une case selon deux coordonnées
+    def case(self, x_case: int, y_case: int) -> Raycast_Case:
+        """Retourne une case selon deux coordonnées
+
+        Args:
+            x_case (int): X de la case à retourner
+            y_case (int): y de la case à retourner
+
+        Returns:
+            Raycast_Case: case à retourner
+        """
+        x_case = floor(x_case)
+        y_case = floor(y_case)
+        if self.dans_map(x_case, y_case):
+            return self.__map[y_case][x_case]
+        return 0
     # Retourne si une coordonnée est dans la map
     def dans_map(self, x_a_tester: int, y_a_tester: int) -> bool:
         """Retourne si une coordonnée est dans la map
@@ -552,6 +568,34 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         return 0
 
     # Ajoute une collision au raycast
+    def __raycast_appliquer_difference_horizontale(self, point: Point_3D, ajout_horizontal: float, ratio_horizontal: float) -> None:
+        """Applique une différence nécessaire dans la map pour le raycast
+
+        Args:
+            point (Point_3D): point auquel appliquer la différence
+        """
+        # Nouvelle position
+        x_actuel = ceil(point.x())
+        if ajout_horizontal < 0: x_actuel = floor(point.x())
+        difference_x = abs(x_actuel - point.x())
+        y_actuel = point.y() + difference_x * ratio_horizontal
+        # Appliquer les modifications
+        point.set_x(x_actuel)
+        point.set_y(y_actuel)
+    def __raycast_appliquer_difference_verticale(self, point: Point_3D, ajout_vertical: float, ratio_vertical: float) -> None:
+        """Applique une différence nécessaire dans la map pour le raycast
+
+        Args:
+            point (Point_3D): point auquel appliquer la différence
+        """
+        # Nouvelle position
+        y_actuel = ceil(point.y())
+        if ajout_vertical < 0: y_actuel = floor(point.y())
+        difference_y = abs(y_actuel - point.y())
+        x_actuel = point.x() + difference_y * ratio_vertical
+        # Appliquer les modifications
+        point.set_x(x_actuel)
+        point.set_y(y_actuel)
     def __raycast_avancement_donnees(self, point_depart: Point_3D, point_arrive: Point_3D) -> tuple:
         """Retourne quelques données sur la façon dont le rayon doit avancer
 
@@ -585,7 +629,7 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             elif avant.x() < 0: ratio_vertical = -ratio_vertical
             elif avant.y() < 0: ajout_vertical = -ajout_vertical
         return (ajout_horizontal, ajout_vertical, ratio_horizontal, ratio_vertical)
-    def raycast_nouvelle_collision(self, raycast_entier: Raycast_Entier, raycast: Raycast, offset_x: int, case_touchee: Raycast_Case, point_touche: Point_3D, point_touche_distance: float, sens_arrive: int, donnees_raycast: tuple) -> None:
+    def __raycast_nouvelle_collision(self, raycast_entier: Raycast_Entier, raycast: Raycast, offset_x: int, case_touchee: Raycast_Case, point_touche: Point_3D, point_touche_distance: float, sens_arrive: int, donnees_raycast: tuple) -> None:
         """Ajoute une collision au raycast
 
         Arguments:
@@ -598,13 +642,11 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         """
 
         # Préparer la création de la collision
-        donnees_raycast = raycast.avancement_donnees(offset_x)
         ajout_horizontal = donnees_raycast[0]
-        ajout_vertical = donnees_raycast[2]
+        ajout_vertical = donnees_raycast[1]
         point_actuel = point_touche.copie()
-        ratio_horizontal = donnees_raycast[1]
+        ratio_horizontal = donnees_raycast[2]
         ratio_vertical = donnees_raycast[3]
-        print(donnees_raycast)
 
         # Créer la collision
         raycast_actuel = Raycast_Collision()
@@ -614,89 +656,35 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         raycast_actuel.set_point_depart(raycast_entier.point_depart())
 
         # Préparer la recherche de la sortie
-        avant = raycast.avant(offset_x)
         distance_horizontale_sortie = -1
         distance_verticale_sortie = -1
         point_de_depart = raycast_actuel.point_depart()
         point_horizontal_sortie = point_touche.copie()
         point_vertical_sortie = point_touche.copie()
         if case_touchee != 0:
-            # Mettre à jour les coordonnées finales
+            # Modifier les coordonnées comme nécessaire
             if sens_arrive == 0:
-                # Nouvelle position
-                y_actuel = ceil(point_touche.y())
-                if ajout_vertical < 0: y_actuel = floor(point_touche.y())
-                difference_y = abs(y_actuel - point_touche.y())
-                x_actuel = point_touche.x() + difference_y * ratio_vertical
-                # Appliquer les modifications
-                point_vertical_sortie.set_x(x_actuel)
-                point_vertical_sortie.set_y(y_actuel)
-                # Gérer la map
-                x_a_tester = floor(x_actuel)
-                y_a_tester = floor(y_actuel)
-                if ajout_vertical > 0: y_a_tester = floor(y_actuel) + 1
-                if self.dans_map(x_a_tester, y_a_tester):
-                    if self.__map[y_a_tester][x_a_tester] != 0 and self.__map[y_a_tester][x_a_tester] != case_touchee:
-                        distance_verticale_sortie = sqrt(pow(x_actuel - point_de_depart.x(), 2) + pow(y_actuel - point_de_depart.y(), 2))
+                # Tester l'axe horizontal
+                point_horizontal_sortie.set_x(point_horizontal_sortie.x() + ajout_horizontal)
+                point_horizontal_sortie.set_y(point_horizontal_sortie.y() + ratio_horizontal)
+                distance_horizontale_sortie = distance(point_de_depart, point_horizontal_sortie)
+
+                # Tester l'axe vertical
+                self.__raycast_appliquer_difference_verticale(point_vertical_sortie, ajout_vertical, ratio_vertical)
+                case_verticale = self.case(point_horizontal_sortie.x(), point_horizontal_sortie.y())
+                if case_verticale != 0 and case_verticale != case_touchee: distance_verticale_sortie = distance(point_de_depart, point_vertical_sortie)
             else:
-                # Nouvelle position
-                x_actuel = ceil(point_touche.x())
-                if ajout_horizontal < 0: x_actuel = floor(point_touche.x())
-                difference_x = abs(x_actuel - point_touche.x())
-                y_actuel = point_touche.y() + difference_x * ratio_horizontal
-                # Appliquer les modifications
-                point_horizontal_sortie.set_x(x_actuel)
-                point_horizontal_sortie.set_y(y_actuel)
-                # Gérer la map
-                x_a_tester = floor(x_actuel) - 1
-                if ajout_horizontal > 0: x_a_tester = floor(x_actuel)
-                y_a_tester = ceil(y_actuel)
-                if self.dans_map(x_a_tester, y_a_tester):
-                    if self.__map[y_a_tester][x_a_tester] != 0 and self.__map[y_a_tester][x_a_tester] != case_touchee:
-                        distance_horizontale_sortie = sqrt(pow(x_actuel - point_de_depart.x(), 2) + pow(y_actuel - point_de_depart.y(), 2))
+                # Tester l'axe vertical
+                point_vertical_sortie.set_x(point_vertical_sortie.x() + ratio_vertical)
+                point_vertical_sortie.set_y(point_vertical_sortie.y() + ajout_vertical)
+                distance_verticale_sortie = distance(point_de_depart, point_vertical_sortie)
 
-            # Chercher la sortie horizontale
-            if distance_horizontale_sortie == -1 and avant.x() != 0:
-                # On cherche la sortie horizontale
-                distance_horizontale_sortie = point_touche_distance
-                while self.dans_map_point(point_horizontal_sortie):
-                    # Nouvelle position
-                    x_actuel = point_horizontal_sortie.x() + ajout_horizontal
-                    y_actuel = point_horizontal_sortie.y() + ratio_horizontal
-                    point_horizontal_sortie.set_x(x_actuel)
-                    point_horizontal_sortie.set_y(y_actuel)
-                    distance_horizontale_sortie = sqrt(pow(x_actuel - point_de_depart.x(), 2) + pow(y_actuel - point_de_depart.y(), 2))
-
-                    # Gérer la map
-                    x_a_tester = floor(x_actuel) - 1
-                    if ajout_horizontal > 0: x_a_tester = floor(x_actuel)
-                    y_a_tester = ceil(y_actuel)
-                    if self.dans_map(x_a_tester, y_a_tester):
-                        if self.__map[y_a_tester][x_a_tester] != 0 and self.__map[y_a_tester][x_a_tester] != case_touchee:
-                            break
-            # Chercher la sortie verticale
-            if distance_verticale_sortie == -1 and avant.y() != 0:
-                # On cherche la sortie verticale
-                distance_verticale_sortie = point_touche_distance
-                while self.dans_map_point(point_vertical_sortie):
-                    # Nouvelle position
-                    x_actuel = point_vertical_sortie.x() + ratio_vertical
-                    y_actuel = point_vertical_sortie.y() + ajout_vertical
-                    point_vertical_sortie.set_x(x_actuel)
-                    point_vertical_sortie.set_y(y_actuel)
-                    distance_verticale_sortie = sqrt(pow(x_actuel - point_de_depart.x(), 2) + pow(y_actuel - point_de_depart.y(), 2))
-
-                    # Gérer la map
-                    x_a_tester = floor(x_actuel)
-                    y_a_tester = floor(y_actuel)
-                    if ajout_vertical > 0: y_a_tester = floor(y_actuel) + 1
-                    if self.dans_map(x_a_tester, y_a_tester):
-                        if self.__map[y_a_tester][x_a_tester] != 0 and self.__map[y_a_tester][x_a_tester] != case_touchee:
-                            break
+                # Tester l'axe horizontal
+                self.__raycast_appliquer_difference_horizontale(point_horizontal_sortie, ajout_horizontal, ratio_horizontal)
+                case_horizontale = self.case(point_horizontal_sortie.x(), point_horizontal_sortie.y())
+                if case_horizontale != 0 and case_horizontale != case_touchee: distance_horizontale_sortie = distance(point_de_depart, point_horizontal_sortie)
                     
         # Préparer le point de sortie
-        if distance_horizontale_sortie == point_touche_distance: distance_horizontale_sortie = -1
-        if distance_verticale_sortie == point_touche_distance: distance_verticale_sortie = -1
         if distance_horizontale_sortie <= -1:
             raycast_actuel.set_case_sortie(point_vertical_sortie, distance_verticale_sortie)
         elif distance_verticale_sortie <= -1:
@@ -708,7 +696,6 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
 
         # Ajoute la collision
         raycast.collisions().append(raycast_actuel)
-    # Effectue un raycast dans la map
     def __raycast_case(self, raycast_entier: Raycast_Entier, case: Raycast_Case) -> None:
         """Réalise un raycast pour une case entière"""
 
@@ -742,45 +729,56 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         nombre_pixels_total = number_pixels_face_1 + number_pixels_face_2
         rayon_par_pixel = floor(self.camera().largeur_ecran() / raycast_entier.nombre_rayons())
 
-        # Calcul des collisions nécessaires pour la première face
-        point_actuel = point_case.copie()
-        distance_actuelle = 0
-        for i in range(angle_start, angle_start + number_pixels_face_1):
-            break
-            if i < 0:
+        if number_pixels_face_1 >= 1:
+            # Calcul des collisions nécessaires pour la première face
+            point_actuel = point_case.copie()
+            distance_actuelle = 0
+            for i in range(angle_start, angle_start + number_pixels_face_1 + 1):
+                if i < 0:
+                    # Modifier le point actuel
+                    point_actuel.set_y(point_actuel.y() - 1.0/number_pixels_face_1)
+                    continue
+                if i >= self.camera().largeur_ecran(): break
+                # Appliquer la collision
+                donnees_raycast = self.__raycast_avancement_donnees(self.camera(), point_actuel)
+                distance_actuelle = distance(self.camera(), point_actuel)
+                offset_actuel = i % rayon_par_pixel
+                rayon_actuel = floor(i / rayon_par_pixel)
+                raycast_actuel = raycast_entier.rayons()[rayon_actuel]
+                self.__raycast_nouvelle_collision(raycast_entier, raycast_actuel, offset_actuel, case, point_actuel, distance_actuelle, 0, donnees_raycast)
+
                 # Modifier le point actuel
                 point_actuel.set_y(point_actuel.y() - 1.0/number_pixels_face_1)
-                continue
-            if i >= self.camera().largeur_ecran(): break
-            # Appliquer la collision
-            distance_actuelle = distance(self.camera(), point_actuel)
-            offset_actuel = i % rayon_par_pixel
-            rayon_actuel = floor(i / rayon_par_pixel)
-            raycast_actuel = raycast_entier.rayons()[rayon_actuel]
-            self.raycast_nouvelle_collision(raycast_entier, raycast_actuel, offset_actuel, case, point_actuel, distance_actuelle, 0, raycast_actuel.avancement_donnees(offset_actuel))
 
-            # Modifier le point actuel
-            point_actuel.set_y(point_actuel.y() - 1.0/number_pixels_face_1)
+        if number_pixels_face_2 >= 1:
+            # Calcul des collisions nécessaires pour la deuxième face
+            point_actuel = point_case_milieu.copie()
+            for i in range(angle_start + number_pixels_face_1 - 1, angle_start + nombre_pixels_total):
+                if i < 0:
+                    # Modifier le point actuel
+                    point_actuel.set_x(point_actuel.x() + 1.0/number_pixels_face_2)
+                    continue
+                if i >= self.camera().largeur_ecran(): break
+                # Appliquer la collision
+                donnees_raycast = self.__raycast_avancement_donnees(self.camera(), point_actuel)
+                distance_actuelle = distance(self.camera(), point_actuel)
+                offset_actuel = i % rayon_par_pixel
+                rayon_actuel = floor(i / rayon_par_pixel)
+                raycast_actuel = raycast_entier.rayons()[rayon_actuel]
+                self.__raycast_nouvelle_collision(raycast_entier, raycast_actuel, offset_actuel, case, point_actuel, distance_actuelle, 1, donnees_raycast)
 
-        # Calcul des collisions nécessaires pour la deuxième face
-        point_actuel = point_case_milieu.copie()
-        for i in range(angle_start + number_pixels_face_1, angle_start + nombre_pixels_total):
-            if i < 0:
                 # Modifier le point actuel
                 point_actuel.set_x(point_actuel.x() + 1.0/number_pixels_face_2)
-                continue
-            if i >= self.camera().largeur_ecran(): break
-            # Appliquer la collision
-            donnees_raycast = self.__raycast_avancement_donnees(self.camera(), point_actuel)
-            distance_actuelle = distance(self.camera(), point_actuel)
-            offset_actuel = i % rayon_par_pixel
-            rayon_actuel = floor(i / rayon_par_pixel)
-            raycast_actuel = raycast_entier.rayons()[rayon_actuel]
-            self.raycast_nouvelle_collision(raycast_entier, raycast_actuel, offset_actuel, case, point_actuel, distance_actuelle, 1, donnees_raycast)
+    def __raycast_position_pleine(self, raycast_entier: Raycast_Entier, x_a_tester: float, y_a_tester: float) -> bool:
+        """Gère si une certaine position dans un raycast contient une case afficahble ou non
 
-            # Modifier le point actuel
-            point_actuel.set_x(point_actuel.x() + 1.0/number_pixels_face_2)
-    def raycast(self, raycast_entier: Raycast_Entier, final: Raycast, point_de_depart: Transformation_3D, angle_ajuste: float = 0, angle_entre_rayons: float = 0, pixels_rayon: int = 1) -> Raycast:
+        Args:
+            point (Point_3D): position à tester
+        """
+        if self.dans_map(x_a_tester, y_a_tester):
+            if self.__map[y_a_tester][x_a_tester] != 0 and self.__map[y_a_tester][x_a_tester].contenu() != 0:
+                self.__raycast_case(raycast_entier, self.__map[y_a_tester][x_a_tester])
+    def raycast(self, raycast_entier: Raycast_Entier, final: Raycast, point_de_depart: Transformation_3D, angle_ajuste: float = 0) -> None:
         """Réalise et retourne un résultat de raycast
 
         Argument:
@@ -798,95 +796,59 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         ajout_horizontal, ajout_vertical, ratio_horizontal, ratio_vertical = final.avancement_donnees()
 
         # Réalisation du raycast vertical
-        distance_verticale_entree = -1
-        point_vertical = point_de_depart + avant
+        point_vertical = point_de_depart.copie()
         if avant.y() != 0:
             # Départ vers le début réel du raycast
-            premiere_difference_vertical = ceil(point_de_depart.y()) - point_de_depart.y()
-            if ajout_vertical < 0: premiere_difference_vertical = point_de_depart.y() - floor(point_de_depart.y())
-            point_vertical = Point_3D()
-            point_vertical.set_x(point_de_depart.x() + premiere_difference_vertical * ratio_vertical)
-            point_vertical.set_y(ceil(point_de_depart.y()))
-            if ajout_vertical < 0: point_vertical.set_y(floor(point_de_depart.y()))
-            distance_verticale_entree = sqrt(pow(point_vertical.x() - point_de_depart.x(), 2) + pow(point_vertical.y() - point_de_depart.y(), 2))
+            self.__raycast_appliquer_difference_verticale(point_vertical, ajout_vertical, ratio_vertical)
+            
             # Premier test de la map
             x_a_tester = floor(point_vertical.x())
             y_a_tester = floor(point_vertical.y())
             if ajout_vertical > 0: y_a_tester = floor(point_vertical.y()) + 1
-            if self.dans_map(x_a_tester, y_a_tester):
-                #Vérifier le premier rayon
-                if self.__map[y_a_tester][x_a_tester] != 0 and self.__map[y_a_tester][x_a_tester].contenu() != 0:
-                    self.__raycast_case(raycast_entier, self.__map[y_a_tester][x_a_tester])
-                    # self.raycast_nouvelle_collision(raycast_entier, final, self.__map[y_a_tester][x_a_tester], point_vertical, distance_verticale_entree, 1, (ajout_horizontal, ratio_horizontal, ajout_vertical, ratio_vertical, angle_entre_rayons, pixels_rayon))
-                # Envoie du rayon
-                while self.dans_map_point(point_vertical):
-                    # Nouvelle position
-                    x_actuel = point_vertical.x() + ratio_vertical
-                    y_actuel = point_vertical.y() + ajout_vertical
-                    point_vertical.set_x(x_actuel)
-                    point_vertical.set_y(y_actuel)
-                    distance_verticale_entree = sqrt(pow(x_actuel - point_de_depart.x(), 2) + pow(y_actuel - point_de_depart.y(), 2))
+            self.__raycast_position_pleine(raycast_entier, x_a_tester, y_a_tester)
+            # Envoie du rayon
+            while self.dans_map_point(point_vertical):
+                # Nouvelle position
+                x_actuel = point_vertical.x() + ratio_vertical
+                y_actuel = point_vertical.y() + ajout_vertical
+                point_vertical.set_x(x_actuel)
+                point_vertical.set_y(y_actuel)
 
-                    # Gérer la map
-                    x_a_tester = floor(x_actuel)
-                    y_a_tester = floor(y_actuel)
-                    if ajout_vertical > 0: y_a_tester = floor(y_actuel) + 1
-                    if self.dans_map(x_a_tester, y_a_tester):
-                        if self.__map[y_a_tester][x_a_tester] != 0 and self.__map[y_a_tester][x_a_tester].contenu() != 0:
-                            self.__raycast_case(raycast_entier, self.__map[y_a_tester][x_a_tester])
-                            # self.raycast_nouvelle_collision(raycast_entier, final, self.__map[y_a_tester][x_a_tester], point_vertical, distance_verticale_entree, 1, (ajout_horizontal, ratio_horizontal, ajout_vertical, ratio_vertical, angle_entre_rayons, pixels_rayon))
+                # Gérer la map
+                x_a_tester = floor(x_actuel)
+                y_a_tester = floor(y_actuel)
+                if ajout_vertical > 0: y_a_tester = floor(y_actuel) + 1
+                self.__raycast_position_pleine(raycast_entier, x_a_tester, y_a_tester)
 
         # Réalisation du raycast horizontal
-        distance_horizontale_entree = -1
-        point_horizontal = Point_3D()
-        point_horizontal.set_x(point_de_depart.x() + avant.x())
-        point_horizontal.set_y(point_de_depart.y() + avant.y())
+        point_horizontal = point_de_depart.copie()
         if avant.x() != 0:
             # Départ vers le début réel du raycast
-            premiere_difference_horizontale = ceil(point_de_depart.x()) - point_de_depart.x()
-            if ajout_horizontal < 0: premiere_difference_horizontale = point_de_depart.x() - floor(point_de_depart.x())
-            point_horizontal = Point_3D()
-            point_horizontal.set_x(ceil(point_de_depart.x()))
-            if ajout_horizontal < 0: point_horizontal.set_x(floor(point_de_depart.x()))
-            point_horizontal.set_y(point_de_depart.y() + premiere_difference_horizontale * ratio_horizontal)
-            distance_horizontale_entree = sqrt(pow(point_horizontal.x() - point_de_depart.x(), 2) + pow(point_horizontal.y() - point_de_depart.y(), 2))
+            self.__raycast_appliquer_difference_horizontale(point_horizontal, ajout_horizontal, ratio_horizontal)
             
             # Premier test de la map
             x_a_tester = floor(point_horizontal.x()) - 1
             if ajout_horizontal > 0: x_a_tester = floor(point_horizontal.x())
             y_a_tester = ceil(point_horizontal.y())
-            if self.dans_map(x_a_tester, y_a_tester):
-                #Vérifier le premier rayon
-                if self.__map[y_a_tester][x_a_tester] != 0 and self.__map[y_a_tester][x_a_tester].contenu() != 0:
-                    self.__raycast_case(raycast_entier, self.__map[y_a_tester][x_a_tester])
-                    # self.raycast_nouvelle_collision(raycast_entier, final, self.__map[y_a_tester][x_a_tester], point_horizontal, distance_horizontale_entree, 0, (ajout_horizontal, ratio_horizontal, ajout_vertical, ratio_vertical, angle_entre_rayons, pixels_rayon))
-                # Envoie du rayon
-                while self.dans_map_point(point_horizontal):
-                    # Nouvelle position
-                    x_actuel = point_horizontal.x() + ajout_horizontal
-                    y_actuel = point_horizontal.y() + ratio_horizontal
-                    point_horizontal.set_x(x_actuel)
-                    point_horizontal.set_y(y_actuel)
-                    distance_horizontale_entree = sqrt(pow(x_actuel - point_de_depart.x(), 2) + pow(y_actuel - point_de_depart.y(), 2))
+            self.__raycast_position_pleine(raycast_entier, x_a_tester, y_a_tester)
+            # Envoie du rayon
+            while self.dans_map_point(point_horizontal):
+                # Nouvelle position
+                x_actuel = point_horizontal.x() + ajout_horizontal
+                y_actuel = point_horizontal.y() + ratio_horizontal
+                point_horizontal.set_x(x_actuel)
+                point_horizontal.set_y(y_actuel)
 
-                    # Gérer la map
-                    x_a_tester = floor(x_actuel) - 1
-                    if ajout_horizontal > 0: x_a_tester = floor(x_actuel)
-                    y_a_tester = ceil(y_actuel)
-                    if self.dans_map(x_a_tester, y_a_tester):
-                        if self.__map[y_a_tester][x_a_tester] != 0 and self.__map[y_a_tester][x_a_tester].contenu() != 0:
-                            self.__raycast_case(raycast_entier, self.__map[y_a_tester][x_a_tester])
-                            # self.raycast_nouvelle_collision(raycast_entier, final, self.__map[y_a_tester][x_a_tester], point_horizontal, distance_horizontale_entree, 0, (ajout_horizontal, ratio_horizontal, ajout_vertical, ratio_vertical, angle_entre_rayons, pixels_rayon))
-
-        # Terminer la recherche de collisions
-        final.ranger_collisions()
-        
-        return final
+                # Gérer la map
+                x_a_tester = floor(x_actuel) - 1
+                if ajout_horizontal > 0: x_a_tester = floor(x_actuel)
+                y_a_tester = ceil(y_actuel)
+                self.__raycast_position_pleine(raycast_entier, x_a_tester, y_a_tester)
     # Effectue l'entiéreté des raycasts nécessaires à un rendu
     def __raycast_entier_un(self, raycast_entier: Raycast_Entier, i_start: int, fov: float, nombre_rayons: int, nombre_raycast: int = 20, largeur_ecran: int = 100):
         """Effectue un raycast pour le raycast en multithread"""
         for i in range(nombre_raycast):
-            self.raycast(raycast_entier, raycast_entier.rayons()[i], self.camera(), fov / 2.0 - (i + i_start) * ((fov)/nombre_rayons), fov / largeur_ecran, largeur_ecran / nombre_rayons)
+            self.raycast(raycast_entier, raycast_entier.rayons()[i], self.camera(), fov / 2.0 - (i + i_start) * ((fov)/nombre_rayons))
     def raycast_entier(self, nombre_rayons: int = 100, nombre_thread: int= 0, largeur_ecran: int = 100) -> Raycast_Entier:
         """Retourne les données sur l'entiéreté des raycasts nécessaires à un rendu
 
@@ -916,7 +878,7 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             tous_les_threads = []
             for i in range(nombre_thread):
                 tous_les_raycasts = []
-                thread = threading.Thread(target=self.__raycast_entier_un, args=(raycasts, tous_les_raycasts, i * rayons_par_thread, self.camera().fov(), nombre_rayons, rayons_par_thread, largeur_ecran))
+                thread = threading.Thread(target=self.__raycast_entier_un, args=(raycasts, tous_les_raycasts, i * rayons_par_thread, self.camera().fov(), nombre_rayons))
                 thread.start()
                 tous_les_threads.append(thread)
                 tous_les_threads.append(tous_les_raycasts)
@@ -931,6 +893,10 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                         raycasts.rayons()[nb_raycast] = raycast
                         nb_raycast += 1
         else: self.__raycast_entier_un(raycasts, 0, self.camera().fov(), nombre_rayons, nombre_rayons, largeur_ecran)
+
+        # Terminer la recherche de collisions
+        for rayon in raycasts.rayons():
+            rayon.ranger_collisions()
         
         return raycasts
 
@@ -1008,12 +974,12 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                 # Calculer les valeur nécessaire à l'objet selon un rayon
                 for collision_actuelle in rayon.collisions()[::-1]:
                     objet_hauteur = (1/collision_actuelle.case_entree_distance()) * (surface.get_height())
-                    objet_y = round(horizon_y - (objet_hauteur / 2.0) * (1 - self.camera().z()))
+                    objet_y = ceil(horizon_y - (objet_hauteur / 2.0) * (1 - self.camera().z()))
                     if objet_y < 0 : continue
                     # Dessiner le toit si nécessaire
                     if objet_y > horizon_y and collision_actuelle.case_sortie_distance() != -1:
                         autre_cote_hauteur = (1/collision_actuelle.case_sortie_distance()) * (surface.get_height())
-                        autre_cote_y = round(horizon_y - (autre_cote_hauteur / 2.0) * (1 - self.camera().z()))
+                        autre_cote_y = floor(horizon_y - (autre_cote_hauteur / 2.0) * (1 - self.camera().z()))
                         pygame.draw.rect(surface, (255, 0, 0), (rayon_actuel * largeur_rayon + collision_actuelle.offset_x(), autre_cote_y, 1, objet_y - autre_cote_y))
                     # Optimiser le traçage
                     if objet_y + objet_hauteur > surface.get_height():
