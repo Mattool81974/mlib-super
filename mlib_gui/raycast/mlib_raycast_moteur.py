@@ -707,14 +707,42 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         point_case = Point_3D()
         point_case_fin = Point_3D()
         point_case_milieu = Point_3D()
+        a_ajouter_x_case = 0
+        a_ajouter_x_case_fin = 0
+        a_ajouter_x_case_milieu = 0
+        a_ajouter_y_case = 0
+        a_ajouter_y_case_fin = 0
+        a_ajouter_y_case_milieu = 0
+        deuxieme_face = 1
+        premiere_face = 0
         if case.x() > self.camera().x():
-            point_case.set_x(case.x())
-            point_case_fin.set_x(case.x() + 1)
-            point_case_milieu.set_x(case.x())
-            if case.y() > self.camera().y():
-                point_case.set_y(case.y() + 1)
-                point_case_fin.set_y(case.y())
-                point_case_milieu.set_y(case.y())
+            if case.y() >= self.camera().y():
+                a_ajouter_x_case_fin = 1
+                a_ajouter_y_case = 1
+            else:
+                a_ajouter_x_case = 1
+                a_ajouter_y_case_milieu = 1
+                a_ajouter_y_case = 1
+                deuxieme_face = 0
+                premiere_face = 1
+        else:
+            if case.y() >= self.camera().y():
+                a_ajouter_x_case_fin = 1
+                a_ajouter_x_case_milieu = 1
+                a_ajouter_y_case_fin = 1
+                deuxieme_face = 0
+                premiere_face = 1
+            else:
+                a_ajouter_x_case = 1
+                a_ajouter_x_case_milieu = 1
+                a_ajouter_y_case_fin = 1
+                a_ajouter_y_case_milieu = 1
+        point_case.set_x(case.x() + a_ajouter_x_case)
+        point_case_fin.set_x(case.x() + a_ajouter_x_case_fin)
+        point_case_milieu.set_x(case.x() + a_ajouter_x_case_milieu)
+        point_case.set_y(case.y() + a_ajouter_y_case)
+        point_case_fin.set_y(case.y() + a_ajouter_y_case_fin)
+        point_case_milieu.set_y(case.y() + a_ajouter_y_case_milieu)
 
         # Calcul l'angle pour la case
         angle_case = -angle(self.camera() + self.camera().devant_normalise(), self.camera(), point_case)
@@ -736,7 +764,8 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             for i in range(angle_start, angle_start + number_pixels_face_1 + 1):
                 if i < 0:
                     # Modifier le point actuel
-                    point_actuel.set_y(point_actuel.y() - 1.0/number_pixels_face_1)
+                    point_actuel.set_x(point_actuel.x() + (a_ajouter_x_case_milieu - a_ajouter_x_case)/number_pixels_face_1)
+                    point_actuel.set_y(point_actuel.y() + (a_ajouter_y_case_milieu - a_ajouter_y_case)/number_pixels_face_1)
                     continue
                 if i >= self.camera().largeur_ecran(): break
                 # Appliquer la collision
@@ -745,10 +774,11 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                 offset_actuel = i % rayon_par_pixel
                 rayon_actuel = floor(i / rayon_par_pixel)
                 raycast_actuel = raycast_entier.rayons()[rayon_actuel]
-                self.__raycast_nouvelle_collision(raycast_entier, raycast_actuel, offset_actuel, case, point_actuel, distance_actuelle, 0, donnees_raycast)
+                self.__raycast_nouvelle_collision(raycast_entier, raycast_actuel, offset_actuel, case, point_actuel, distance_actuelle, premiere_face, donnees_raycast)
 
                 # Modifier le point actuel
-                point_actuel.set_y(point_actuel.y() - 1.0/number_pixels_face_1)
+                point_actuel.set_x(point_actuel.x() + (a_ajouter_x_case_milieu - a_ajouter_x_case)/number_pixels_face_1)
+                point_actuel.set_y(point_actuel.y() + (a_ajouter_y_case_milieu - a_ajouter_y_case)/number_pixels_face_1)
 
         if number_pixels_face_2 >= 1:
             # Calcul des collisions nécessaires pour la deuxième face
@@ -756,7 +786,8 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             for i in range(angle_start + number_pixels_face_1 - 1, angle_start + nombre_pixels_total):
                 if i < 0:
                     # Modifier le point actuel
-                    point_actuel.set_x(point_actuel.x() + 1.0/number_pixels_face_2)
+                    point_actuel.set_x(point_actuel.x() + (a_ajouter_x_case_fin - a_ajouter_x_case_milieu)/number_pixels_face_2)
+                    point_actuel.set_y(point_actuel.y() + (a_ajouter_y_case_fin - a_ajouter_y_case_milieu)/number_pixels_face_2)
                     continue
                 if i >= self.camera().largeur_ecran(): break
                 # Appliquer la collision
@@ -765,10 +796,11 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                 offset_actuel = i % rayon_par_pixel
                 rayon_actuel = floor(i / rayon_par_pixel)
                 raycast_actuel = raycast_entier.rayons()[rayon_actuel]
-                self.__raycast_nouvelle_collision(raycast_entier, raycast_actuel, offset_actuel, case, point_actuel, distance_actuelle, 1, donnees_raycast)
+                self.__raycast_nouvelle_collision(raycast_entier, raycast_actuel, offset_actuel, case, point_actuel, distance_actuelle, deuxieme_face, donnees_raycast)
 
                 # Modifier le point actuel
-                point_actuel.set_x(point_actuel.x() + 1.0/number_pixels_face_2)
+                point_actuel.set_x(point_actuel.x() + (a_ajouter_x_case_fin - a_ajouter_x_case_milieu)/number_pixels_face_2)
+                point_actuel.set_y(point_actuel.y() + (a_ajouter_y_case_fin - a_ajouter_y_case_milieu)/number_pixels_face_2)
     def __raycast_position_pleine(self, raycast_entier: Raycast_Entier, x_a_tester: float, y_a_tester: float) -> bool:
         """Gère si une certaine position dans un raycast contient une case afficahble ou non
 
