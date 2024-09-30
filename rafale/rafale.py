@@ -36,7 +36,7 @@ from rafale_fenetre import *
 #
 #******************
 
-fenetre = Rafale_Fenetre(800, 800)
+fenetre = Rafale_Fenetre(400, 400)
 
 while fenetre.continuer():
     fenetre.maj_evenements()
