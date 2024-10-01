@@ -331,13 +331,13 @@ class Raycast:
             float: les angles de caméra utilisé dans le raycast
         """
         return self.__angles_camera
-    def avant(self, indince: int = 0) -> Point_3D:
+    def avant(self, indice: int = 0) -> Point_3D:
         """Retourne le vecteur avant dans le raycast
 
         Returns:
             Point_3D: vecteur avant dans le raycast
         """
-        return self.camera().devant_normalise(self.angle_camera(indince))
+        return self.camera().devant_normalise(self.angle_camera(int(indice)))
     def camera(self) -> Raycast_Camera:
         """Retourne la caméra utilisé par le raycast
 
@@ -629,6 +629,26 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             elif avant.x() < 0: ratio_vertical = -ratio_vertical
             elif avant.y() < 0: ajout_vertical = -ajout_vertical
         return (ajout_horizontal, ajout_vertical, ratio_horizontal, ratio_vertical)
+    def __raycast_donnees_affichage_case(self, raycast_entier: Raycast_Entier, case: Raycast_Case, donnees_points_case: tuple) -> tuple:
+        """Retourne les données nécessaire à l'affichage d'une case
+        """
+
+        # Préparation des données
+        point_case, point_case_milieu, point_case_fin = donnees_points_case[:3]
+
+        # Calcul les angles pour la case
+        angle_case = -angle(self.camera() + self.camera().devant_normalise(), self.camera(), point_case)
+        angle_case_fin = -angle(self.camera() + self.camera().devant_normalise(), self.camera(), point_case_fin)
+        angle_case_milieu = -angle(self.camera() + self.camera().devant_normalise(), self.camera(), point_case_milieu)
+        angle_total_face_1 = abs(angle_case_milieu - angle_case)
+        angle_total_face_2 = abs(angle_case_fin - angle_case_milieu)
+        angle_pixel = self.camera().fov() / self.camera().largeur_ecran()
+
+        # Calcul les pixels nécessaire via les angles
+        angle_start = round(((angle_case + self.camera().fov() / 2.0) / self.camera().fov()) / angle_pixel)
+        number_pixels_face_1 = round(angle_total_face_1 / angle_pixel)
+        number_pixels_face_2 = round(angle_total_face_2 / angle_pixel)
+        return (angle_start, number_pixels_face_1, number_pixels_face_2)
     def __raycast_nouvelle_collision(self, raycast_entier: Raycast_Entier, raycast: Raycast, offset_x: int, case_touchee: Raycast_Case, point_touche: Point_3D, point_touche_distance: float, sens_arrive: int, donnees_raycast: tuple) -> None:
         """Ajoute une collision au raycast
 
@@ -671,7 +691,9 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
 
                 # Tester l'axe vertical
                 self.__raycast_appliquer_difference_verticale(point_vertical_sortie, ajout_vertical, ratio_vertical)
-                case_verticale = self.case(point_horizontal_sortie.x(), point_horizontal_sortie.y())
+                case_verticale =  0
+                if ajout_vertical > 0: case_verticale = self.case(point_vertical_sortie.x(), point_vertical_sortie.y())
+                else: case_verticale = self.case(point_vertical_sortie.x(), point_vertical_sortie.y() - 1)
                 if case_verticale != 0 and case_verticale != case_touchee: distance_verticale_sortie = distance(point_de_depart, point_vertical_sortie)
             else:
                 # Tester l'axe vertical
@@ -681,7 +703,9 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
 
                 # Tester l'axe horizontal
                 self.__raycast_appliquer_difference_horizontale(point_horizontal_sortie, ajout_horizontal, ratio_horizontal)
-                case_horizontale = self.case(point_horizontal_sortie.x(), point_horizontal_sortie.y())
+                case_horizontale =  0
+                if ajout_horizontal > 0: case_horizontale = self.case(point_horizontal_sortie.x(), point_horizontal_sortie.y())
+                else: case_horizontale = self.case(point_horizontal_sortie.x() - 1, point_horizontal_sortie.y())
                 if case_horizontale != 0 and case_horizontale != case_touchee: distance_horizontale_sortie = distance(point_de_depart, point_horizontal_sortie)
                     
         # Préparer le point de sortie
@@ -696,14 +720,12 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
 
         # Ajoute la collision
         raycast.collisions().append(raycast_actuel)
-    def __raycast_case(self, raycast_entier: Raycast_Entier, case: Raycast_Case) -> None:
-        """Réalise un raycast pour une case entière"""
+    def __raycast_point_affichage(self, case: Raycast_Case) -> None:
+        """Retourne les points nécessaires à l'affichage d'une case
 
-        # Vérifier si le rendu doit être fait
-        if case.numero_frame_dernier_rendu() == self.structure_plus().numero_frame(): return
-        case.rendu(self.structure_plus().numero_frame())
-
-        # Calculer les valeurs nécessaires pour la case
+        Args:
+            case (Raycast_Case): points nécessaires à l'affichage d'une case
+        """
         point_case = Point_3D()
         point_case_fin = Point_3D()
         point_case_milieu = Point_3D()
@@ -743,17 +765,21 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         point_case.set_y(case.y() + a_ajouter_y_case)
         point_case_fin.set_y(case.y() + a_ajouter_y_case_fin)
         point_case_milieu.set_y(case.y() + a_ajouter_y_case_milieu)
+        return (point_case, point_case_milieu, point_case_fin, premiere_face, deuxieme_face)
+    def __raycast_case(self, raycast_entier: Raycast_Entier, case: Raycast_Case) -> None:
+        """Réalise un raycast pour une case entière"""
 
-        # Calcul l'angle pour la case
-        angle_case = -angle(self.camera() + self.camera().devant_normalise(), self.camera(), point_case)
-        angle_case_fin = -angle(self.camera() + self.camera().devant_normalise(), self.camera(), point_case_fin)
-        angle_case_milieu = -angle(self.camera() + self.camera().devant_normalise(), self.camera(), point_case_milieu)
-        angle_total_face_1 = abs(angle_case_milieu - angle_case)
-        angle_total_face_2 = abs(angle_case_fin - angle_case_milieu)
-        angle_pixel = self.camera().fov() / self.camera().largeur_ecran()
-        angle_start = round(((angle_case + self.camera().fov() / 2.0) / self.camera().fov()) / angle_pixel)
-        number_pixels_face_1 = round(angle_total_face_1 / angle_pixel)
-        number_pixels_face_2 = round(angle_total_face_2 / angle_pixel)
+        # Vérifier si le rendu doit être fait
+        if case.numero_frame_dernier_rendu() == self.structure_plus().numero_frame(): return
+        case.rendu(self.structure_plus().numero_frame())
+
+        # Calculer les valeurs nécessaires pour la case
+        donnees = self.__raycast_point_affichage(case)
+        point_case, point_case_milieu, point_case_fin, premiere_face, deuxieme_face = donnees
+
+        # Calcul les pixels nécessaires pour l'affichage
+        donnees = self.__raycast_donnees_affichage_case(raycast_entier, case, donnees)
+        angle_start, number_pixels_face_1, number_pixels_face_2 = donnees
         nombre_pixels_total = number_pixels_face_1 + number_pixels_face_2
         rayon_par_pixel = floor(self.camera().largeur_ecran() / raycast_entier.nombre_rayons())
 
@@ -764,8 +790,8 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             for i in range(angle_start, angle_start + number_pixels_face_1 + 1):
                 if i < 0:
                     # Modifier le point actuel
-                    point_actuel.set_x(point_actuel.x() + (a_ajouter_x_case_milieu - a_ajouter_x_case)/number_pixels_face_1)
-                    point_actuel.set_y(point_actuel.y() + (a_ajouter_y_case_milieu - a_ajouter_y_case)/number_pixels_face_1)
+                    point_actuel.set_x(point_actuel.x() + (point_case_milieu.x() - point_case.x())/number_pixels_face_1)
+                    point_actuel.set_y(point_actuel.y() + (point_case_milieu.y() - point_case.y())/number_pixels_face_1)
                     continue
                 if i >= self.camera().largeur_ecran(): break
                 # Appliquer la collision
@@ -777,8 +803,8 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                 self.__raycast_nouvelle_collision(raycast_entier, raycast_actuel, offset_actuel, case, point_actuel, distance_actuelle, premiere_face, donnees_raycast)
 
                 # Modifier le point actuel
-                point_actuel.set_x(point_actuel.x() + (a_ajouter_x_case_milieu - a_ajouter_x_case)/number_pixels_face_1)
-                point_actuel.set_y(point_actuel.y() + (a_ajouter_y_case_milieu - a_ajouter_y_case)/number_pixels_face_1)
+                point_actuel.set_x(point_actuel.x() + (point_case_milieu.x() - point_case.x())/number_pixels_face_1)
+                point_actuel.set_y(point_actuel.y() + (point_case_milieu.y() - point_case.y())/number_pixels_face_1)
 
         if number_pixels_face_2 >= 1:
             # Calcul des collisions nécessaires pour la deuxième face
@@ -786,8 +812,8 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             for i in range(angle_start + number_pixels_face_1 - 1, angle_start + nombre_pixels_total):
                 if i < 0:
                     # Modifier le point actuel
-                    point_actuel.set_x(point_actuel.x() + (a_ajouter_x_case_fin - a_ajouter_x_case_milieu)/number_pixels_face_2)
-                    point_actuel.set_y(point_actuel.y() + (a_ajouter_y_case_fin - a_ajouter_y_case_milieu)/number_pixels_face_2)
+                    point_actuel.set_x(point_actuel.x() + (point_case_fin.x() - point_case_milieu.x())/number_pixels_face_2)
+                    point_actuel.set_y(point_actuel.y() + (point_case_fin.y() - point_case_milieu.y())/number_pixels_face_2)
                     continue
                 if i >= self.camera().largeur_ecran(): break
                 # Appliquer la collision
@@ -799,8 +825,8 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                 self.__raycast_nouvelle_collision(raycast_entier, raycast_actuel, offset_actuel, case, point_actuel, distance_actuelle, deuxieme_face, donnees_raycast)
 
                 # Modifier le point actuel
-                point_actuel.set_x(point_actuel.x() + (a_ajouter_x_case_fin - a_ajouter_x_case_milieu)/number_pixels_face_2)
-                point_actuel.set_y(point_actuel.y() + (a_ajouter_y_case_fin - a_ajouter_y_case_milieu)/number_pixels_face_2)
+                point_actuel.set_x(point_actuel.x() + (point_case_fin.x() - point_case_milieu.x())/number_pixels_face_2)
+                point_actuel.set_y(point_actuel.y() + (point_case_fin.y() - point_case_milieu.y())/number_pixels_face_2)
     def __raycast_position_pleine(self, raycast_entier: Raycast_Entier, x_a_tester: float, y_a_tester: float) -> bool:
         """Gère si une certaine position dans un raycast contient une case afficahble ou non
 
@@ -810,7 +836,7 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         if self.dans_map(x_a_tester, y_a_tester):
             if self.__map[y_a_tester][x_a_tester] != 0 and self.__map[y_a_tester][x_a_tester].contenu() != 0:
                 self.__raycast_case(raycast_entier, self.__map[y_a_tester][x_a_tester])
-    def raycast(self, raycast_entier: Raycast_Entier, final: Raycast, point_de_depart: Transformation_3D, angle_ajuste: float = 0) -> None:
+    def raycast(self, raycast_entier: Raycast_Entier, final: Raycast, point_de_depart: Transformation_3D) -> None:
         """Réalise et retourne un résultat de raycast
 
         Argument:
@@ -821,11 +847,9 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         """
 
         # Préparation des raycast
-        avant = point_de_depart.devant_normalise(angle_ajuste)
-        final.set_avant(avant)
-
-        # Préaparation des données pour le raycast
-        ajout_horizontal, ajout_vertical, ratio_horizontal, ratio_vertical = final.avancement_donnees()
+        avant = final.avant()
+        donnees = final.avancement_donnees()
+        ajout_horizontal, ajout_vertical, ratio_horizontal, ratio_vertical = donnees
 
         # Réalisation du raycast vertical
         point_vertical = point_de_depart.copie()
@@ -877,10 +901,10 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                 y_a_tester = ceil(y_actuel)
                 self.__raycast_position_pleine(raycast_entier, x_a_tester, y_a_tester)
     # Effectue l'entiéreté des raycasts nécessaires à un rendu
-    def __raycast_entier_un(self, raycast_entier: Raycast_Entier, i_start: int, fov: float, nombre_rayons: int, nombre_raycast: int = 20, largeur_ecran: int = 100):
+    def __raycast_entier_un(self, raycast_entier: Raycast_Entier, nombre_raycast: int = 20):
         """Effectue un raycast pour le raycast en multithread"""
         for i in range(nombre_raycast):
-            self.raycast(raycast_entier, raycast_entier.rayons()[i], self.camera(), fov / 2.0 - (i + i_start) * ((fov)/nombre_rayons))
+            self.raycast(raycast_entier, raycast_entier.rayons()[i], self.camera())
     def raycast_entier(self, nombre_rayons: int = 100, nombre_thread: int= 0, largeur_ecran: int = 100) -> Raycast_Entier:
         """Retourne les données sur l'entiéreté des raycasts nécessaires à un rendu
 
@@ -893,7 +917,8 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
 
         # Configurer le Raycast_Entier
         angle_actuel = -self.camera().fov() / 2.0
-        pixels_par_rayon = int(largeur_ecran / nombre_rayons)
+        pixels_par_rayon = ceil(largeur_ecran / nombre_rayons)
+        pixels_par_rayon += ceil(pixels_par_rayon / nombre_rayons)
         raycasts = Raycast_Entier()
         raycasts.set_point_depart(self.camera())
         for i in range(nombre_rayons):
@@ -902,7 +927,7 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             raycasts.rayons().append(raycast_actuel)
             for j in range(pixels_par_rayon):
                 raycast_actuel.angles_camera().append(angle_actuel)
-                angle_actuel += self.camera().fov() / largeur_ecran
+                angle_actuel += self.camera().fov() / (largeur_ecran)
 
         if nombre_thread > 0:
             # Création des threads nécessaires
@@ -924,11 +949,10 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                     for raycast in thread:
                         raycasts.rayons()[nb_raycast] = raycast
                         nb_raycast += 1
-        else: self.__raycast_entier_un(raycasts, 0, self.camera().fov(), nombre_rayons, nombre_rayons, largeur_ecran)
+        else: self.__raycast_entier_un(raycasts, nombre_rayons)
 
         # Terminer la recherche de collisions
-        for rayon in raycasts.rayons():
-            rayon.ranger_collisions()
+        for rayon in raycasts.rayons(): rayon.ranger_collisions()
         
         return raycasts
 
