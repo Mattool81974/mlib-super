@@ -51,6 +51,7 @@ class Objet:
         # Définition des attributs de base
         self.__arriere_plan_texture = 0
         self.__arriere_plan_texture_alignement_horizontal = 1
+        self.__arriere_plan_texture_alignement_vertical = 1
         self.__bordure_couleur = (0, 0, 0)
         self.__bordure_largeur = (0, 0, 0, 0)
         self.__couleur_arriere_plan = (255, 255, 255, 0)
@@ -59,6 +60,7 @@ class Objet:
         self.__nom = nom
         self.__structure_plus = structure_plus
         self.__surface = 0
+        self.__texture_rotation = 0
         self.__x = x
         self.__y = y
 
@@ -95,12 +97,18 @@ class Objet:
         if self.arriere_plan_texture() != 0:
             surface_actuelle = self.arriere_plan_texture().surface()
 
+            # Calcul de la rotation
+            if self.texture_rotation() != 0:
+                surface_actuelle = pygame.transform.rotate(surface_actuelle, self.texture_rotation())
             # Calcul des coordonnées
             x_texture = 0
+            y_texture = 0
             if self.arriere_plan_texture_alignement_horizontal() == 1:
                 x_texture = surface_objet.get_width() / 2.0 - surface_actuelle.get_width() / 2.0
+            if self.arriere_plan_texture_alignement_vertical() == 1:
+                y_texture = surface_objet.get_height() / 2.0 - surface_actuelle.get_height() / 2.0
 
-            surface_objet.blit(surface_actuelle, (x_texture, 0, surface_actuelle.get_width(), surface_actuelle.get_height()))
+            surface_objet.blit(surface_actuelle, (x_texture, y_texture, surface_actuelle.get_width(), surface_actuelle.get_height()))
 
     # Getters et setters
     def arriere_plan_texture(self) -> Texture:
@@ -117,6 +125,13 @@ class Objet:
             int: alignement horizontal de la texture d'arrière plan de l'objet
         """
         return self.__arriere_plan_texture_alignement_horizontal
+    def arriere_plan_texture_alignement_vertical(self) -> int:
+        """Retourne l'alignement vertical de la texture d'arrière plan de l'objet
+
+        Returns:
+            int: alignement vertical de la texture d'arrière plan de l'objet
+        """
+        return self.__arriere_plan_texture_alignement_vertical
     def bordure_couleur(self) -> tuple:
         """Retourne la couleur de la bordure
 
@@ -196,6 +211,14 @@ class Objet:
             texture_nom (str): nom de la nouvelle texture
         """
         self.__arriere_plan_texture = self.structure_plus().texture_nom(texture_nom)
+    def set_texture_rotation(self, nouvelle_texture_rotation: float) -> None:
+        """Change la rotation de la texture
+
+        Args:
+            nouvelle_texture_rotation (float): nouvelle rotation de la texture
+        """
+        if self.texture_rotation() != nouvelle_texture_rotation:
+            self.__texture_rotation = nouvelle_texture_rotation
     def set_x(self, nouvel_x: int) -> None:
         """Modifie la valeur de x
 
@@ -217,6 +240,13 @@ class Objet:
             Structure_Plus: Structure plus du logiciel
         """
         return self.__structure_plus
+    def texture_rotation(self) -> float:
+        """Retourne la rotation de la texture
+
+        Returns:
+            float: rotation de la texture
+        """
+        return self.__texture_rotation
 
 #******************
 #

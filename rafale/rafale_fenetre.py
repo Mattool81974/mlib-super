@@ -44,7 +44,7 @@ class Rafale_Raycast(Raycast_Moteur):
         super().__init__(structure_plus)
 
     # Crée et retourne un nouvel objet dynamique avec son bon type
-    def nouvel_objet_dynamique_createur(self, nom: str, type: str) -> Raycast_Objet_Dynamique:
+    def nouvel_objet_dynamique_createur(self, nom: str, type: str = "") -> Raycast_Objet_Dynamique:
         """Crée et retourne un nouvel objet dynamique avec son bon type
 
         Args:
@@ -83,13 +83,14 @@ class Rafale_Fenetre(Fenetre):
         self.__moteur_raycast = self.nouveau_raycast()
         self.__raycast = self.nouvel_enfant("raycast", "raycast", 0, 0, largeur, hauteur)
         self.__rafale = self.moteur_raycast().nouvel_objet_dynamique("rafale", "rafale")
-        self.__rafale_texture = self.nouvel_enfant("rafale", "objet", 0, hauteur / 2.0, largeur, hauteur)
+        self.__rafale_texture = self.nouvel_enfant("rafale", "objet", 0, hauteur / 3, largeur, hauteur / 2)
 
         # Données à propos du Rafale
         self.__altitude_rafale = self.nouvel_enfant("__altitude_rafale", "texte", largeur - 250, hauteur - 80, 250, 40)
         self.__vitesse_rafale = self.nouvel_enfant("vitesse_rafale", "texte", largeur - 250, hauteur - 40, 250, 40)
 
         # Chargement des textures
+        self.charger_texture_chemin_acces("balle", "assets/ball.png")
         self.charger_texture_chemin_acces("rafale", "assets/rafale.png")
 
         mur = self.moteur_raycast().nouveau_materiel(1)
@@ -99,6 +100,8 @@ class Rafale_Fenetre(Fenetre):
 
         self.__raycast.set_couleur_arriere_plan((0, 0, 255))
         self.__raycast.set_raycast_moteur(self.moteur_raycast())
+
+        self.__rafale.set_visible(False)
 
         self.__rafale_texture.set_couleur_arriere_plan((0, 0, 0, 0))
         self.__rafale_texture.set_arriere_plan_texture_par_nom("rafale")
@@ -113,6 +116,12 @@ class Rafale_Fenetre(Fenetre):
 
         self.rafale().set_rotation_x(3.1415)
         self.rafale().set_z(5)
+
+        balle = self.moteur_raycast().nouvel_objet_dynamique("balle")
+        balle.set_texture_par_nom("balle")
+        balle.set_x(10)
+        balle.set_y(10)
+        balle.set_z(2)
 
     def nouvel_enfant_createur(self, nom: str, type: str) -> Objet:
         """Crée l'enfant, avec le type nécessaire selon "type
@@ -141,22 +150,20 @@ class Rafale_Fenetre(Fenetre):
         """Met à jour le rafale
         """
 
-        if self.touche_pressee("p"): self.rafale().maj()
+        self.rafale().maj()
         altitude = self.rafale().z() * 100
         vitesse = self.rafale().vitesse().valeur()
 
-        rotation_speed = (3.1415)/5.0
-        if self.touche_pressee("fd") or self.touche_pressee("d"): self.rafale().set_rotation_y(self.rafale().rotation_y() - rotation_speed * self.delta_time())
-        if self.touche_pressee("fg") or self.touche_pressee("q"): self.rafale().set_rotation_y(self.rafale().rotation_y() + rotation_speed * self.delta_time())
-
+        rotation_speed = (3.1415)/2.0
         if self.touche_pressee("fh") or self.touche_pressee("z"): self.rafale().set_rotation_x(self.rafale().rotation_x() - rotation_speed * self.delta_time())
         if self.touche_pressee("fb") or self.touche_pressee("s"): self.rafale().set_rotation_x(self.rafale().rotation_x() + rotation_speed * self.delta_time())
+        self.__rafale_texture.set_texture_rotation(self.rafale().rotation_z() * (180.0/pi))
 
         self.moteur_raycast().camera().set_xyz(self.rafale())
         self.moteur_raycast().camera().set_rotation_x(self.rafale().rotation_x())
         self.moteur_raycast().camera().set_rotation_y(self.rafale().rotation_y())
 
-        self.__altitude_rafale.set_texte(str(altitude * 3.6).split(".")[0] + " m")
+        self.__altitude_rafale.set_texte(str(altitude).split(".")[0] + " m")
         self.__vitesse_rafale.set_texte(str(vitesse * 3.6).split(".")[0] + " km/h")
 
     # Getters et setters

@@ -93,6 +93,25 @@ class Rafale(Raycast_Objet_Dynamique):
         vitesse_accumulee = vecteur_avant.copie()
         vitesse_accumulee *= (poussee_globale / self.poids()) * self.structure_plus().delta_time()
         self.__vitesse += vitesse_accumulee
+
+        # Prend en compte le changement de rétention d'énergie
+        modification_rotation = 0
+        modification_rotation_z = 0
+        rotation_seconde = 1.0
+        rotation_x_seconde = pi / 2.0
+        if self.structure_plus().touche_pressee("q"):
+            modification_rotation = rotation_seconde * self.structure_plus().delta_time()
+            modification_rotation_z = rotation_x_seconde * self.structure_plus().delta_time()
+            tourner(self.__vitesse, modification_rotation)
+        if self.structure_plus().touche_pressee("d"):
+            modification_rotation = -rotation_seconde * self.structure_plus().delta_time()
+            modification_rotation_z = -rotation_x_seconde * self.structure_plus().delta_time()
+            tourner(self.__vitesse, modification_rotation)
+        if modification_rotation != 0: self.__vitesse *= (1.0 - (self.structure_plus().delta_time()/4.0))
+        self.set_rotation_z(self.rotation_z() + modification_rotation_z)
+        if self.rotation_z() > pi / 2.0: self.set_rotation_z(pi / 2.0)
+        if self.rotation_z() < -pi / 2.0: self.set_rotation_z(-pi / 2.0)
+        self.set_rotation_y(self.rotation_y() + modification_rotation)
         
         # Prend en compte les frottements
         vitesse_actuelle = self.__vitesse.copie()
@@ -101,6 +120,7 @@ class Rafale(Raycast_Objet_Dynamique):
         vitesse_a_enlever -= vitesse_actuelle
         vitesse_a_enlever *= 0.1 * self.structure_plus().delta_time()
         self.__vitesse += vitesse_a_enlever
+        self.set_rotation_z(self.rotation_z() * (1.0 - (self.structure_plus().delta_time()) * 3.0))
 
         # Mettre le rafale en mouvement
         vitesse_a_ajouter = self.__vitesse.copie()

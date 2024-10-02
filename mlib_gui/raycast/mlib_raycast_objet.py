@@ -161,9 +161,12 @@ class Raycast_Objet_Dynamique(Transformation_3D):
 
         # Définition des attributs
         self.__hauteur = 1
+        self.__largeur = 1
         self.__materiel = 0
         self.__nom = nom
         self.__raycast_moteur_structure = raycast_moteur_structure
+        self.__texture = 0
+        self.__visible = True
 
     # Met l'objet à jour
     def maj(self) -> None:
@@ -178,6 +181,13 @@ class Raycast_Objet_Dynamique(Transformation_3D):
             float: hauteur de l'objet
         """
         return self.__hauteur
+    def largeur(self) -> float:
+        """Retourne la largeur de l'objet
+
+        Returns:
+            float: largeur de l'objet
+        """
+        return self.__largeur
     def materiel(self) -> Raycast_Materiel:
         """Retourne le matériel de raycast de l'objet
 
@@ -213,6 +223,23 @@ class Raycast_Objet_Dynamique(Transformation_3D):
             nouveau_materiel (Raycast_Materiel): id du nouveau matériel
         """
         self.set_materiel(self.raycast_moteur_structure().materiel_par_id(nouveau_materiel))
+    def set_texture_par_nom(self, nom_texture: str) -> None:
+        """Change la texture par une texture d'un certain nom
+
+        Args:
+            nom_texture (str): nom de la nouvelle texture
+        """
+        texture = self.structure_plus().texture_nom(nom_texture)
+        if texture != self.__texture:
+            self.__texture = texture
+    def set_visible(self, nouveau_visible: bool) -> None:
+        """Change si l'objet est visible ou pas
+
+        Args:
+            nouveau_visible (bool): nouveau si l'objet est visible ou pas
+        """
+        if self.visible() != nouveau_visible:
+            self.__visible = nouveau_visible
     def structure_plus(self) -> Structure_Plus:
         """Retourne la Structure_Plus du software
 
@@ -220,3 +247,17 @@ class Raycast_Objet_Dynamique(Transformation_3D):
             Structure_Plus: Structure_Plus du software
         """
         return self.raycast_moteur_structure().structure_plus()
+    def texture(self) -> Texture:
+        """Retourne la texture de l'objet
+
+        Returns:
+            Texture: texture de l'objet
+        """
+        return self.__texture
+    def visible(self) -> bool:
+        """Retourne si l'objet est visible ou pas
+
+        Returns:
+            bool: si l'objet est visible ou pas
+        """
+        return self.__visible

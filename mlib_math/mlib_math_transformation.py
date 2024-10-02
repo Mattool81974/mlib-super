@@ -274,6 +274,24 @@ def distance(premier_point: Point_3D, deuxieme_point: Point_3D) -> float:
     """
     return sqrt(pow(premier_point.x() - deuxieme_point.x(), 2) + pow(premier_point.y() - deuxieme_point.y(), 2))
 
+def tourner(point: Point_3D, rotation: float) -> None:
+    """Tourne un point autour du centre (0, 0)
+
+    Args:
+        point (Point_3D): point à tourner
+        rotation (float): rotation à appliquer au point
+    """
+
+    # Calcul du nécessaire à la rotation
+    taille = sqrt(pow(point.x(), 2) + pow(point.y(), 2))
+    angle_x = acos(point.x() / taille)
+    if point.y() < 0: angle_x = 3.1415 * 2 - angle_x
+
+    # Calcul de la nouvelle rotation
+    angle_x += rotation
+    point.set_x(cos(angle_x) * taille)
+    point.set_y(sin(angle_x) * taille)
+
 #******************
 #
 # La classe "Transformation_3D"
@@ -335,6 +353,13 @@ class Transformation_3D(Point_3D):
             float: rotation Y de la transformation
         """
         return self.__rotation_y
+    def rotation_z(self) -> float:
+        """Retourne la rotation Z de la transformation
+
+        Returns:
+            float: rotation Z de la transformation
+        """
+        return self.__rotation_z
     def set_rotation_x(self, nouvelle_rotation_x: float) -> None:
         """Change la rotation X de la transformation
 
@@ -351,3 +376,11 @@ class Transformation_3D(Point_3D):
         """
         if nouvelle_rotation_y != self.__rotation_y:
             self.__rotation_y = nouvelle_rotation_y
+    def set_rotation_z(self, nouvelle_rotation_z: float) -> None:
+        """Change la rotation Z de la transformation
+
+        Returns:
+            float: nouvelle rotation Z de la transformation
+        """
+        if nouvelle_rotation_z != self.__rotation_z:
+            self.__rotation_z = nouvelle_rotation_z
