@@ -30,6 +30,76 @@ from mlib_gui.mlib_structure_plus import Structure_Plus
 #
 #******************
 
+class Mitrailleuse:
+    """Classe représentant une mitrailleuse équipable sur un véhicule"""
+
+    # Constructeur de "Mitrailleuse"
+    def __init__(self, moteur_raycast: Raycast_Moteur, nom: str) -> None:
+        """Constructeur de "Mitrailleuse"
+
+        Returns:
+            _type_: _description_
+        """
+
+        # Définition des attributs
+        self.__balles_tirees = 0
+        self.__cadence = 10
+        self.__moteur_raycast = moteur_raycast
+        self.__nom = nom
+        self.__temps_dernier_tir = 0
+
+    # Valide un tir
+    def __tirer(self, position_tir: Transformation_3D) -> None:
+        """Tire une munition"""
+        balle = self.moteur_raycast().nouvel_objet_dynamique(self.nom() + "-balle_" + str(self.__balles_tirees), "balle")
+        position_finale = position_tir + position_tir.devant_normalise() * 4
+        balle.set_x(position_finale.x())
+        balle.set_y(position_finale.y())
+        balle.set_z(position_finale.z())
+        self.__balles_tirees += 1
+    # Tire avec la mitrailleuse
+    def tirer(self, position_tir: Transformation_3D) -> bool:
+        """Tire avec la mitrailleuse
+
+        Returns:
+            bool: si le tire a bien eu lieu
+        """
+
+        # Vérifie si le tir peut avoir lieu
+        if time_ns() - self.__temps_dernier_tir < 1.0/self.cadence(): return
+        self.__temps_dernier_tir = time_ns()
+        self.__tirer(position_tir)
+
+    # Getters et setters
+    def cadence(self) -> int:
+        """Retourne la cadence de la mitrailleuse
+
+        Returns:
+            int: cadence de la mitrailleuse
+        """
+        return self.__cadence
+    def moteur_raycast(self) -> Raycast_Moteur:
+        """Retourne le moteur de raycast de la mitrailleuse
+
+        Returns:
+            Raycast_Moteur: moteur de raycast de la mitrailleuse
+        """
+        return self.__moteur_raycast
+    def nom(self) -> str:
+        """Retourne le nom de la mitrailleuse
+
+        Returns:
+            str: nom de la mitrailleuse
+        """
+        return self.__nom
+    def structure_plus(self) -> Structure_Plus:
+        """Retourne la Structure_Plus de la mitrailleuse
+
+        Returns:
+            Structure_Plus: Structure_Plus de la mitrailleuse
+        """
+        return self.moteur_raycast().structure_plus()
+
 class Rafale_Moteur:
     """Classe représentant un moteur de Rafale (Safran M88-2)"""
 
@@ -62,17 +132,18 @@ class Rafale(Raycast_Objet_Dynamique):
     """Classe représentant un Rafale (partie physique et graphique)"""
 
     # Constructeur de "Rafale"
-    def __init__(self, raycast_moteur_structure: Raycast_Moteur_Structure, nom: str):
+    def __init__(self, raycast_moteur: Raycast_Moteur, nom: str):
         """ Constructeur de "Raycast_Objet_Dynamique"
 
         Args:
             raycast_moteur_structure (Raycast_Moteur_Structure): moteur principal de l'objet dynamique
             nom (str): nom de l'objet dynamique
         """
-        super().__init__(raycast_moteur_structure, nom)
+        super().__init__(raycast_moteur, nom)
 
         # Définition des attributs
         self.__gravite = 9.81
+        self.__mitrailleuse = Mitrailleuse(raycast_moteur, nom + "-defa")
         self.__moteur_droit = Rafale_Moteur()
         self.__moteur_gauche = Rafale_Moteur()
         self.__poids = 3680
@@ -86,7 +157,6 @@ class Rafale(Raycast_Objet_Dynamique):
         """Effectue une mise à jour du rafale"""
 
         # Met à jour la vitesse du rafale
-
         # Prend en compte la poussée
         poussee_globale = self.moteur_droit().poussee() + self.moteur_gauche().poussee()
         vecteur_avant = self.devant_normalise()
@@ -127,8 +197,23 @@ class Rafale(Raycast_Objet_Dynamique):
         vitesse_a_ajouter *= 0.01
         vitesse_a_ajouter *= self.structure_plus().delta_time()
         self.ajouter(vitesse_a_ajouter)
-    
+
+        # Attaque avec le Rafale
+        if self.structure_plus().touche_pressee("e"):
+            self.tirer()
+    # Tirer avec le Rafale
+    def tirer(self) -> None:
+        """Tire avec le Rafale"""
+        self.mitrailleuse().tirer(self)
+
     # Getters et setters
+    def mitrailleuse(self) -> Mitrailleuse:
+        """Retourne la mitrailleuse utilisé dans le rafale
+
+        Returns:
+            Mitrailleuse: mitrailleuse utilisé dans le rafale
+        """
+        return self.__mitrailleuse
     def moteur_droit(self) -> Rafale_Moteur:
         """Retourne le moteur droit du Rafale
 
@@ -150,6 +235,13 @@ class Rafale(Raycast_Objet_Dynamique):
             float: poids du rafale en Kg
         """
         return self.__poids
+    def moteur_raycast(self) -> Raycast_Moteur:
+        """Retourne le moteur Raycast de l'objet
+
+        Returns:
+            Raycast_Moteur: moteur Raycast de l'objet
+        """
+        return self.raycast_moteur_structure()
     def vitesse(self) -> Point_3D:
         """Retourne la vitesse du rafale
 

@@ -193,6 +193,15 @@ class Point_3D:
         self.set_y(self.y() - autre.y())
         self.set_z(self.z() - autre.z())
         return self
+    def __mul__(self, autre):
+        """Effectue la multiplication de ce point avec un autre
+
+        Args:
+            autre: valeur à multiplier
+        """
+        point_final = self.copie()
+        point_final *= autre
+        return point_final
     def __sub__(self, autre):
         """Retourne la soustraction de ce point avec un autre
 

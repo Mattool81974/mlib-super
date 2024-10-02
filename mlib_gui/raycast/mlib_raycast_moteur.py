@@ -880,6 +880,7 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
 
         # Calcul les angles nécessaires pour l'affichage
         distance_objet = distance(self.camera(), objet)
+        if distance_objet <= 0: return
         largeur_objet = self.largeur_apparente(objet.largeur(), distance_objet)
         angle_case = -angle(self.camera() + self.camera().devant_normalise(), self.camera(), objet)
         angle_start = angle_case - largeur_objet / 2.0
@@ -1038,6 +1039,11 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         # Effectue un dernier Raycast pour éviter certains bugs de rendu
         self.raycast(raycasts, dernier_raycast, self.camera())
 
+        # Générations des objets dynamiques nécessaires
+        for objet in self.objets_dynamiques():
+            if objet.visible():
+                self.__raycast_objet_dynamique(raycasts, objet)
+
         # Terminer la recherche de collisions
         for rayon in raycasts.rayons(): rayon.ranger_collisions()
         
@@ -1161,11 +1167,6 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         surface = pygame.Surface((largeur_ecran, largeur_ecran))
         surface.fill(self.couleur_arriere_plan())
 
-        # Générations des objets dynamiques nécessaires
-        for objet in self.objets_dynamiques():
-            if objet.visible():
-                self.__raycast_objet_dynamique(raycasts, objet)
-
         # Calcul de l'horizon
         horizon_y = (surface.get_height() / 2.0) * (3.1415 / self.camera().rotation_x())
         if(floor(horizon_y) < surface.get_height()):
@@ -1193,6 +1194,7 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                         pygame.draw.rect(surface, (180, 0, 0), (rayon_actuel * largeur_rayon + collision_actuelle.offset_x(), objet_y, 1, objet_hauteur))
                     elif collision_actuelle.objet_dynamique_touche() != 0:
                         # Faire le rendu d'un objet dynamique
+                        objet = collision_actuelle.objet_dynamique_touche()
                         objet_hauteur = self.taille_apparente(surface.get_height(), collision_actuelle.entree_distance())
                         objet_y = self.y_pixel_collision(collision_actuelle, surface.get_height(), horizon_y) - objet_hauteur
 
@@ -1202,7 +1204,7 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
 
                         if objet.texture() == 0:
                             # Tracer sans texture
-                            pygame.draw.rect(surface, (180, 0, 0), (rayon_actuel * largeur_rayon + collision_actuelle.offset_x(), objet_y, 1, objet_hauteur))
+                            pygame.draw.rect(surface, (180, 180, 180), (rayon_actuel * largeur_rayon + collision_actuelle.offset_x(), objet_y, 1, objet_hauteur))
                         else:
                             # Tracer avec texture
                             texture_surface = objet.texture().surface()

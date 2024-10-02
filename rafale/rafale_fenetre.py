@@ -165,7 +165,7 @@ class Rafale_Fenetre(Fenetre):
 
         self.__altitude_rafale.set_texte(str(altitude).split(".")[0] + " m")
         self.__vitesse_rafale.set_texte(str(vitesse * 3.6).split(".")[0] + " km/h")
-
+    
     # Getters et setters
     def moteur_raycast(self) -> Raycast_Moteur:
         """Retourne le moteur raycast pour le rafale

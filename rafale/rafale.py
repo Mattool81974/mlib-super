@@ -31,7 +31,7 @@ from math import sqrt, pow
 from rafale_fenetre import *
 
 #******************
-#
+#q
 # Programme principal
 #
 #******************
