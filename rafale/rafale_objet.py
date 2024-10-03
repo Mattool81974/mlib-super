@@ -23,12 +23,83 @@
 
 from mlib import *
 from mlib_gui.mlib_structure_plus import Structure_Plus
+from mlib_gui.raycast.mlib_raycast_objet import Raycast_Moteur_Structure
 
 #******************
 #
 # La classe "Rafale"
 #
 #******************
+
+class Cible(Raycast_Objet_Dynamique):
+    """Classe représentant une cible de Rafale"""
+
+    # Constructeur de "Cible"
+    def __init__(self, raycast_moteur_structure: Raycast_Moteur_Structure, nom: str):
+        """Constructeur de "Cible
+
+        Args:
+            raycast_moteur_structure (Raycast_Moteur_Structure): moteur principal de l'objet dynamique
+            nom (str): nom de l'objet dynamique
+        """
+        super().__init__(raycast_moteur_structure, nom)
+
+class Balle(Raycast_Objet_Dynamique):
+    """Classe représentant une balle tirée par une mitrailleuse"""
+
+    # Constructeur de "Balle"
+    def __init__(self, raycast_moteur: Raycast_Moteur, nom: str) -> None:
+        """Constructeur de "Balle"
+
+        Args:
+            raycast_moteur_structure (Raycast_Moteur_Structure): moteur principal de l'objet dynamique
+            nom (str): nom de l'objet dynamique
+        """
+        super().__init__(raycast_moteur, nom)
+
+        # Définition des attributs
+        self.__calibre = 30
+        self.__duree_vie = 2
+        self.__moment_creation = time_ns()
+        self.__vitesse = 0
+
+        # Paramètres de base d'une balle
+        self.set_hauteur(0.02)
+        self.set_largeur(0.02)
+
+    # Met la Balle à jour
+    def maj(self) -> None:
+        """Effectue une mise à jour de la Balle"""
+
+        # Met à jour la vitesse de l'objet
+        self.ajouter(self.vitesse() * self.structure_plus().delta_time())
+
+        # Vérifier les dégats
+        cibles = self.raycast_moteur_structure().objets_dynamiques_par_tag("cible")
+        for cible in cibles:
+            distance_cible = distance(self, cible)
+            if distance_cible <= cible.largeur() / 2.0:
+                self.raycast_moteur_structure().supprimer_objet_dynamique(cible)
+
+        # Vérifier la durée de vie de la balle
+        if (time_ns() - self.__moment_creation) / pow(10, 9) >= self.__duree_vie:
+            self.raycast_moteur_structure().supprimer_objet_dynamique(self)
+
+    # Getters et setters
+    def set_vitesse(self, nouvelle_vitesse: Point_3D) -> None:
+        """Change la vitesse de l'objet
+
+        Args:
+            nouvelle_vitesse (Point_3D): nouvelle vitesse de l'objet
+        """
+        self.__vitesse = nouvelle_vitesse
+    def vitesse(self) -> Point_3D:
+        """Retourne la vitesse de l'objet
+
+        Returns:
+            Point_3D: vitesse de l'objet
+        """
+        return self.__vitesse
 
 class Mitrailleuse:
     """Classe représentant une mitrailleuse équipable sur un véhicule"""
@@ -52,7 +123,9 @@ class Mitrailleuse:
     def __tirer(self, position_tir: Transformation_3D) -> None:
         """Tire une munition"""
         balle = self.moteur_raycast().nouvel_objet_dynamique(self.nom() + "-balle_" + str(self.__balles_tirees), "balle")
-        position_finale = position_tir + position_tir.devant_normalise() * 4
+        position_finale = position_tir
+        balle.ajouter_tag("balle")
+        balle.set_vitesse(position_tir.devant_normalise() * 20)
         balle.set_x(position_finale.x())
         balle.set_y(position_finale.y())
         balle.set_z(position_finale.z())

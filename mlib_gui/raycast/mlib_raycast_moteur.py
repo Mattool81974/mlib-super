@@ -612,6 +612,20 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             if objet.nom() == nom:
                 return objet
         return 0
+    # Retourne une liste de tous les objets dynamiques contenant un certain tag
+    def objets_dynamiques_par_tag(self, tag: str) -> list:
+        """Retourne une liste de tous les obejts dynamiques contenant un certain tag
+
+        Args:
+            tag (str): tag à tester
+
+        Returns:
+            list: liste des objets
+        """
+        retour = []
+        for objet in self.objets_dynamiques():
+            if objet.contient_tag(tag): retour.append(objet)
+        return retour
 
     # Ajoute une collision au raycast
     def __raycast_appliquer_difference_horizontale(self, point: Point_3D, ajout_horizontal: float, ratio_horizontal: float) -> None:
@@ -1106,6 +1120,13 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             collision_y = horizon_y - floor((difference_z * (self.camera().distance_ecran() / collision.case_sortie_distance())) * hauteur_surface)
         return collision_y
 
+    # Met le moteur Raycast à jour
+    def maj(self) -> None:
+        """Met le moteur Raycast à jour"""
+
+        # Met à jours les objets dynamiques
+        for objet in self.objets_dynamiques():
+            objet.maj()
     # Retourne le rendu 2D du raycast
     def rendu_2d(self) -> pygame.Surface:
         """Retourne le rendu 2D du raycast
@@ -1168,7 +1189,7 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
         surface.fill(self.couleur_arriere_plan())
 
         # Calcul de l'horizon
-        horizon_y = (surface.get_height() / 2.0) * (3.1415 / self.camera().rotation_x())
+        horizon_y = (surface.get_height() / 2.0) + (surface.get_height()) * sin(self.camera().rotation_x())
         if(floor(horizon_y) < surface.get_height()):
             surface.blit(self.texture_bas_rendu_3D(surface.get_width(), surface.get_height() - floor(horizon_y)), (0, floor(horizon_y)))
 
@@ -1195,7 +1216,7 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                     elif collision_actuelle.objet_dynamique_touche() != 0:
                         # Faire le rendu d'un objet dynamique
                         objet = collision_actuelle.objet_dynamique_touche()
-                        objet_hauteur = self.taille_apparente(surface.get_height(), collision_actuelle.entree_distance())
+                        objet_hauteur = self.taille_apparente(surface.get_height() * objet.hauteur(), collision_actuelle.entree_distance())
                         objet_y = self.y_pixel_collision(collision_actuelle, surface.get_height(), horizon_y) - objet_hauteur
 
                         # Optimiser le traçage
@@ -1215,6 +1236,13 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
 
         return surface
     
+    # Supprime un objet dynamique
+    def supprimer_objet_dynamique(self, objet_dynamique: Raycast_Objet_Dynamique) -> None:
+        """Supprime un objet dynamique"""
+
+        # Supprime l'objet dynamique
+        self.objets_dynamiques().remove(objet_dynamique)
+
     # Retourne la texture en bas d'un rendu 3D
     def texture_bas_rendu_3D(self, longueur_jeu: int, hauteur_horizon: int) -> pygame.Surface:
         """Retourne la texture en bas d'un rendu 3D

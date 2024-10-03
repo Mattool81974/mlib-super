@@ -130,6 +130,22 @@ class Raycast_Moteur_Structure:
         else :
             print("MLib Raycast moteur : le matériel d'id \"" + str(id) + "\" que vous essayez de créer existe déjà.")
         return 0
+    # Retourne une liste de tous les objets dynamiques contenant un certain tag
+    def objets_dynamiques_par_tag(self, tag: str) -> list:
+        """Retourne une liste de tous les obejts dynamiques contenant un certain tag
+
+        Args:
+            tag (str): tag à tester
+
+        Returns:
+            list: liste des objets
+        """
+        return []
+
+    # Supprime un objet dynamique
+    def supprimer_objet_dynamique(self, objet_dynamique) -> None:
+        """Supprime un objet dynamique"""
+        pass
 
     # Getters et setters
     def structure_plus(self) -> Structure_Plus:
@@ -165,8 +181,30 @@ class Raycast_Objet_Dynamique(Transformation_3D):
         self.__materiel = 0
         self.__nom = nom
         self.__raycast_moteur_structure = raycast_moteur_structure
+        self.__tags = []
         self.__texture = 0
         self.__visible = True
+
+    # Rajoute un tag à l'objet
+    def ajouter_tag(self, tag: str) -> None:
+        """Rajoute un tag à l'objet
+
+        Args:
+            tag(str): tag à ajouter
+        """
+        if not self.contient_tag(tag):
+            self.tags().append(tag)
+    # Retourne si l'objet contient un tag
+    def contient_tag(self, tag: str) -> bool:
+        """Si l'objet contient un tag
+
+        Args:
+            tag (str): tag à tester
+
+        Returns:
+            bool: si l'objet contient un tag
+        """
+        return self.tags().count(tag)
 
     # Met l'objet à jour
     def maj(self) -> None:
@@ -209,6 +247,20 @@ class Raycast_Objet_Dynamique(Transformation_3D):
             Raycast_Moteur_Structure: structure du moteur de raycast
         """
         return self.__raycast_moteur_structure
+    def set_hauteur(self, nouvelle_hauteur: float) -> None:
+        """Change la hauteur de l'objet
+
+        Args:
+            nouvelle_hauteur (float): nouvelle hauteur de l'objet
+        """
+        self.__hauteur = nouvelle_hauteur
+    def set_largeur(self, nouvelle_largeur: float) -> None:
+        """Change la largeur de l'objet
+
+        Args:
+            nouvelle_largeur (float): nouvelle largeur de l'objet
+        """
+        self.__largeur = nouvelle_largeur
     def set_materiel(self, nouveau_materiel: Raycast_Materiel) -> None:
         """Change le matériel de raycast de l'objet
 
@@ -247,6 +299,13 @@ class Raycast_Objet_Dynamique(Transformation_3D):
             Structure_Plus: Structure_Plus du software
         """
         return self.raycast_moteur_structure().structure_plus()
+    def tags(self) -> list:
+        """Retourne les tags de l'objet
+
+        Returns:
+            list: tags de l'objet
+        """
+        return self.__tags
     def texture(self) -> Texture:
         """Retourne la texture de l'objet
 
