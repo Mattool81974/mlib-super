@@ -24,6 +24,7 @@
 from mlib import *
 from mlib_gui.raycast.mlib_raycast_objet import Structure_Plus
 from rafale_objet import *
+from random import randint
 
 #******************
 #
@@ -162,8 +163,8 @@ class Rafale_Fenetre(Fenetre):
         balle = self.moteur_raycast().nouvel_objet_dynamique("cible_" + str(self.__cibles_crees))
         balle.ajouter_tag("cible")
         balle.set_texture_par_nom("balle")
-        balle.set_x(10)
-        balle.set_y(10)
+        balle.set_x(randint(0, self.moteur_raycast().largeur_map()))
+        balle.set_y(randint(0, self.moteur_raycast().hauteur_map()))
         balle.set_z(2)
         self.moteur_raycast().ajouter_cible(balle)
         self.__cibles_crees += 1
@@ -195,6 +196,9 @@ class Rafale_Fenetre(Fenetre):
         """Met à jour le rafale
         """
 
+        if len(self.cibles()) <= 0:
+            self.ajouter_cible()
+
         self.moteur_raycast().maj()
         altitude = self.rafale().z() * 100
         vitesse = self.rafale().vitesse().valeur()
@@ -212,6 +216,13 @@ class Rafale_Fenetre(Fenetre):
         self.__vitesse_rafale.set_texte(str(vitesse * 3.6).split(".")[0] + " km/h")
     
     # Getters et setters
+    def cibles(self) -> list:
+        """Retourne les listes dans le jeu
+
+        Returns:
+            list: listes dans le jeu
+        """
+        return self.moteur_raycast().cibles()
     def moteur_raycast(self) -> Rafale_Raycast:
         """Retourne le moteur raycast pour le rafale
 

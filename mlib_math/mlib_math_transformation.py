@@ -281,7 +281,8 @@ def distance(premier_point: Point_3D, deuxieme_point: Point_3D) -> float:
     Returns:
         float: distance entre deux points
     """
-    return sqrt(pow(premier_point.x() - deuxieme_point.x(), 2) + pow(premier_point.y() - deuxieme_point.y(), 2))
+    distance_x_2 = pow(premier_point.x() - deuxieme_point.x(), 2) + pow(premier_point.y() - deuxieme_point.y(), 2)
+    return sqrt(distance_x_2 + pow(premier_point.z() - deuxieme_point.z(), 2))
 
 def tourner(point: Point_3D, rotation: float) -> None:
     """Tourne un point autour du centre (0, 0)

@@ -1217,7 +1217,7 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
                         # Faire le rendu d'un objet dynamique
                         objet = collision_actuelle.objet_dynamique_touche()
                         objet_hauteur = self.taille_apparente(surface.get_height() * objet.hauteur(), collision_actuelle.entree_distance())
-                        objet_y = self.y_pixel_collision(collision_actuelle, surface.get_height(), horizon_y) - objet_hauteur
+                        objet_y = self.y_pixel_collision(collision_actuelle, surface.get_height(), horizon_y) - objet_hauteur / 2.0
 
                         # Optimiser le traçage
                         if objet_y < 0 : continue
@@ -1284,6 +1284,13 @@ class Raycast_Moteur(Raycast_Moteur_Structure):
             int: hauteur de la map
         """
         return self.__hauteur_map
+    def largeur_map(self) -> int:
+        """Retourne la largeur de la map
+
+        Returns:
+            int: largeur de la map
+        """
+        return self.__largeur_map
     def objets_dynamiques(self) -> list:
         """Retourne la liste d'objets dynamiques
 
