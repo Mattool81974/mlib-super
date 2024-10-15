@@ -206,3 +206,17 @@ class Fenetre(Structure_Plus) :
     def continuer(self) -> bool:
         """Retourne si la classe continue de marcher"""
         return self.__continue
+    def hauteur(self) -> int:
+        """Retourne la hauteur de la fenêtre
+
+        Returns:
+            int: hauteur de la fenêtre
+        """
+        return self.__hauteur
+    def largeur(self) -> int:
+        """Retourne la largeur de la fenêtre
+
+        Returns:
+            int: largeur de la fenêtre
+        """
+        return self.__largeur

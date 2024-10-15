@@ -22,11 +22,13 @@
 #
 
 import sys
+sys.path.append("./")
 sys.path.append("./mlib_gui/")
 sys.path.append("./mlib_gui/raycast/")
 sys.path.append("./mlib_math/")
 sys.path.append("../mlib_gui/")
 sys.path.append("../mlib_gui/raycast/")
 sys.path.append("../mlib_math/")
+from mlib_bdd import *
 from mlib_gui.mlib_fenetre import *
 from mlib_gui.mlib_raycast import *

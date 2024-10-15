@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "name": "Connection",
+            "database": "${workspaceFolder:mlib-super}/bdd.sql"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

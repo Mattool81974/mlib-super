@@ -30,36 +30,24 @@ from mlib import *
 #
 #******************
 
-fenetre = Fenetre(630, 328)
+fenetre = Fenetre(500, 500)
 
-moteur_raycast = fenetre.nouveau_raycast()
+# Stockage des données
+attributs_tanks = ["Nom", "Pays", "Création"]
+tanks = [["Leclerc", "France", 1991],
+           ["M1A2 Abrams", "USA", 1992]]
+# Création de la base de données
+bdd = Base_De_Donnees("tanks.db")
+bdd.creer_table("Sandwich", (("Nom_Sandwich", "str"), ("Prix", "float")))
 
-mur = moteur_raycast.nouveau_materiel(1)
-mur.set_couleur_2d((255, 0, 0))
-
-moteur_raycast.generer_map_depuis_texte_chemin_acces("assets/map.txt")
-
-rafale = moteur_raycast.nouvel_objet_dynamique("rafale")
-rafale.set_materiel_par_id(1)
-
-raycast = fenetre.nouvel_enfant("raycast", "raycast", 0, 0, 328, 328)
-raycast.set_couleur_arriere_plan((0, 0, 255))
-raycast.set_raycast_moteur(moteur_raycast)
-
-moteur_raycast.camera().set_x(5)
-moteur_raycast.camera().set_y(5)
-moteur_raycast.camera().set_z(2)
+# Création d'un titre principal
+titre = fenetre.nouvel_enfant("titre_principal", "text", 0, 0, fenetre.largeur(), fenetre.hauteur() / 7.0)
+titre.set_police_taille(50)
+titre.set_texte("Base de données")
 
 while fenetre.continuer():
     fenetre.maj_evenements()
 
-    if fenetre.touche_pressee("z"): moteur_raycast.camera().avancer(5.0 * fenetre.delta_time())
-    if fenetre.touche_pressee("s"): moteur_raycast.camera().avancer(-5.0 * fenetre.delta_time())
-
-    if fenetre.touche_pressee("fd"): moteur_raycast.camera().set_rotation_y(moteur_raycast.camera().rotation_y() - (3.1415) * fenetre.delta_time())
-    if fenetre.touche_pressee("fg"): moteur_raycast.camera().set_rotation_y(moteur_raycast.camera().rotation_y() + (3.1415) * fenetre.delta_time())
-
-    if fenetre.touche_pressee("espace"): moteur_raycast.camera().set_z(moteur_raycast.camera().z() + 5 * fenetre.delta_time())
-    if fenetre.touche_pressee("shift"): moteur_raycast.camera().set_z(moteur_raycast.camera().z() - 5 * fenetre.delta_time())
+    
 
     fenetre.maj_rendu()
